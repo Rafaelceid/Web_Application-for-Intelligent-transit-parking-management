@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <body>
+<script src='//api.tiles.mapbox.com/mapbox.js/plugins/leaflet-omnivore/v0.3.1/leaflet-omnivore.min.js'></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.3.4/dist/leaflet.js" ></script>
 
@@ -19,11 +20,17 @@ let osmAttrib =
   'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors';
 let osm = new L.TileLayer(osmUrl, { attribution: osmAttrib });
 mymap.addLayer(osm);
+<<<<<<< HEAD
 mymap.setView([38.246242, 21.7350847], 16);
 let marker = L.marker([38.246242, 21.7350847]);
 marker.addTo(mymap);
 marker.bindPopup("<b>Πλατεία Γεωργίου</b>");
 omnivore.kml('paris.kml').addTo(mymap);
+=======
+mymap.setView([40.640266, 22.939524], 16);
+let layer = omnivore.kml('geonode-population_data_per_block.kml');
+layer.addTo(mymap)
+>>>>>>> 47c38aec605a19583263489a5c14f5741e165da1
 
 </script>
 
