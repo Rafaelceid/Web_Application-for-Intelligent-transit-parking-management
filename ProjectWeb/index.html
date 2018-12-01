@@ -1,12 +1,5 @@
 <html>
     <head>
-      <!-- bootstrap -->
-
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-
 	<link rel="stylesheet" href="https://openlayers.org/en/v5.3.0/css/ol.css" type="text/css">
     <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
     <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
@@ -52,7 +45,7 @@
     projection: new OpenLayers.Projection("EPSG:4326"),
     strategies: [new OpenLayers.Strategy.Fixed()],
     protocol: new OpenLayers.Protocol.HTTP({
-        url: "map.kml",
+        url: "xartis.kml",
         format: new OpenLayers.Format.KML({
             extractStyles: true,
             extractAttributes: true
@@ -73,7 +66,7 @@
 <?php
 /**** Configuration ****/
 // The KML file you want to process
-$kml_file = 'map.kml';
+$kml_file = 'xartis.kml';
 // The name of the table to create in the SQL file
 $table_name = 'dataset';
 // Whether to escape the ampersands in the KML; shp2kml doesn't do it
@@ -90,10 +83,11 @@ $headings = array('NAME', 'LONGITUDE', 'LATITUDE','COORDINATES');
 $headings_mapped = false;
 $data = array();
 foreach ($places_xml->Document->Folder[0]->Placemark as $place) {
-  $coords = explode(',', trim($place->Point->coordinates));
+  $coords = explode(',', trim($place->MultiGeometry->Point->coordinates));
   $row = array(
     $place->name
     , $coords[0]
+	, $coords[1]
   );
   $desc_bits = explode('</tr>', $place->description);
   array_pop($desc_bits);
@@ -120,14 +114,15 @@ $output .= "\t`id` int(11) NOT NULL AUTO_INCREMENT,\n";
 $output .= "\t`name` varchar(100) COLLATE utf8_unicode_ci NOT NULL,\n";
 $output .= "\t`lat` double NOT NULL,\n";
 $output .= "\t`lng` double NOT NULL,\n";
+$output .= "\t`coords` int(20) NOT NULL AUTO_INCREMENT,\n";
 $fields = array();
-foreach (array_slice($headings, 3) as $head) {
+foreach (array_slice($headings, 4) as $head) {
   $output .= "\t`" . $head . "` text COLLATE utf8_unicode_ci NOT NULL,\n";
   $fields[] = '`' . $head . '`';
 }
 $output .= "\tPRIMARY KEY (`id`)\n";
 $output .= ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;\n\n";
-$output .= 'INSERT INTO `' . $table_name . '` (`name`, `lat` ,`lng`, ' . implode(', ', $fields) . ") VALUES\n";
+$output .= 'INSERT INTO `' . $table_name . '` (`name`, `lat` ,`lng`,`coords` ' . implode(', ', $fields) . ") VALUES\n";
 $values = array();
 foreach ($data as $row) {
   $values[] = '("' . implode('", "', $row) . '")';
