@@ -45,7 +45,7 @@
     projection: new OpenLayers.Projection("EPSG:4326"),
     strategies: [new OpenLayers.Strategy.Fixed()],
     protocol: new OpenLayers.Protocol.HTTP({
-        url: "xartis.kml",
+        url: "map.kml",
         format: new OpenLayers.Format.KML({
             extractStyles: true,
             extractAttributes: true
@@ -66,7 +66,7 @@
 <?php
 /**** Configuration ****/
 // The KML file you want to process
-$kml_file = 'xartis.kml';
+$kml_file = 'map.kml';
 // The name of the table to create in the SQL file
 $table_name = 'dataset';
 // Whether to escape the ampersands in the KML; shp2kml doesn't do it
@@ -83,11 +83,9 @@ $headings = array('NAME', 'LONGITUDE', 'LATITUDE','COORDINATES');
 $headings_mapped = false;
 $data = array();
 foreach ($places_xml->Document->Folder[0]->Placemark as $place) {
-  $coords = explode(',', trim($place->MultiGeometry->Point->coordinates));
   $row = array(
-    $place->name
-    , $coords[0]
-	, $coords[1]
+    $place->name,
+    $place->MultiGeometry->Polygon->outerBoundaryIs->LinearRing->coordinates
   );
   $desc_bits = explode('</tr>', $place->description);
   array_pop($desc_bits);
