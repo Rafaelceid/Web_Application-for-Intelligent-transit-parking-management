@@ -129,5 +129,28 @@ $output .= implode(",\n", $values);
 $output .= ";\n";
 file_put_contents(str_replace('.kml', '.sql', $kml_file), $output);
 ?>
+
+
+<?php
+$sql = file_get_contents('map.sql');
+
+$con=mysqli_connect("localhost","root", "", "map_data");
+if(!$con){
+    die("Connect failed: ".mysqli_error($con));
+}
+if (mysqli_connect_errno()) {
+    die("Connect failed: ".mysqli_connect_errno()." : ". mysqli_connect_error());
+}
+echo "ise pollis";
+
+
+if ($mysqli->multi_query($sql)) {
+    echo "success";
+} else {
+   echo "error";
+}
+return $con;
+?>
+
     </body>
 </html>
