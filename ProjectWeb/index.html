@@ -123,6 +123,7 @@ $output .= ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_IN
 $output .= 'INSERT INTO `' . $table_name . '` (`name`, `lat` ,`lng`,`coords` ' . implode(', ', $fields) . ") VALUES\n";
 $values = array();
 foreach ($data as $row) {
+
   $values[] = '("' . implode('", "', $row) . '")';
 }
 $output .= implode(",\n", $values);
@@ -132,8 +133,8 @@ file_put_contents(str_replace('.kml', '.sql', $kml_file), $output);
 
 
 <?php
-$sql = file_get_contents('map.sql');
 
+$filename = 'map.sql';
 $con=mysqli_connect("localhost","root", "", "map_data");
 if(!$con){
     die("Connect failed: ".mysqli_error($con));
@@ -142,14 +143,56 @@ if (mysqli_connect_errno()) {
     die("Connect failed: ".mysqli_connect_errno()." : ". mysqli_connect_error());
 }
 echo "ise pollis";
+$maxRuntime = 8; // less then your max script execution limit
 
 
-if ($mysqli->multi_query($sql)) {
-    echo "success";
-} else {
-   echo "error";
+$deadline = time()+$maxRuntime;
+$progressFilename = $filename.'_filepointer'; // tmp file for progress
+$errorFilename = $filename.'_error'; // tmp file for erro
+($fp = fopen($filename, 'r')) OR die('failed to open file:'.$filename);
+
+// check for previous error
+if( file_exists($errorFilename) ){
+    die('<pre> previous error: '.file_get_contents($errorFilename));
 }
-return $con;
+
+// activate automatic reload in browser
+echo '<html><head> <meta http-equiv="refresh" content="'.($maxRuntime+2).'"><pre>';
+
+// go to previous file position
+$filePosition = 0;
+if( file_exists($progressFilename) ){
+    $filePosition = file_get_contents($progressFilename);
+    fseek($fp, $filePosition);
+}
+
+$queryCount = 0;
+$query = '';
+while( $deadline>time() AND ($line=fgets($fp, 1024000)) ){
+    if(substr($line,0,2)=='--' OR trim($line)=='' ){
+        continue;
+    }
+
+    $query .= $line;
+    if( substr(trim($query),-1)==';' ){
+        if( !mysql_query($query) ){
+            $error = 'Error performing query \'<strong>' . $query . '\': ' . mysql_error();
+            file_put_contents($errorFilename, $error."\n");
+            exit;
+        }
+        $query = '';
+        file_put_contents($progressFilename, ftell($fp)); // save the current file position for
+        $queryCount++;
+    }
+}
+
+if( feof($fp) ){
+    echo 'dump successfully restored!';
+}else{
+    echo ftell($fp).'/'.filesize($filename).' '.(round(ftell($fp)/filesize($filename), 2)*100).'%'."\n";
+    echo $queryCount.' queries processed! please reload or wait for automatic browser refresh!';
+}
+
 ?>
 
     </body>
