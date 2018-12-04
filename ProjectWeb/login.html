@@ -1,126 +1,199 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Bootstrap Elegant Modal Login Modal Form with Icons</title>
-<link href="https://fonts.googleapis.com/css?family=Roboto|Varela+Round" rel="stylesheet">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-<style type="text/css">
-    body {
-		font-family: 'Varela Round', sans-serif;
-	}
-	.modal-login {
-		color: #636363;
-		width: 350px;
-	}
-	.modal-login .modal-content {
-		padding: 20px;
-		border-radius: 5px;
-		border: none;
-	}
-	.modal-login .modal-header {
-		border-bottom: none;
-		position: relative;
-		justify-content: center;
-	}
-	.modal-login h4 {
-		text-align: center;
-		font-size: 26px;
-	}
-	.modal-login  .form-group {
-		position: relative;
-	}
-	.modal-login i {
-		position: absolute;
-		left: 13px;
-		top: 11px;
-		font-size: 18px;
-	}
-	.modal-login .form-control {
-		padding-left: 40px;
-	}
-	.modal-login .form-control:focus {
-		border-color: #00ce81;
-	}
-	.modal-login .form-control, .modal-login .btn {
-		min-height: 40px;
-		border-radius: 3px;
-	}
-	.modal-login .hint-text {
-		text-align: center;
-		padding-top: 10px;
-	}
-	.modal-login .close {
-        position: absolute;
-		top: -5px;
-		right: -5px;
-	}
-	.modal-login .btn {
-		background: #00ce81;
-		border: none;
-		line-height: normal;
-	}
-	.modal-login .btn:hover, .modal-login .btn:focus {
-		background: #00bf78;
-	}
-	.modal-login .modal-footer {
-		background: #ecf0f1;
-		border-color: #dee4e7;
-		text-align: center;
-		margin: 0 -20px -20px;
-		border-radius: 5px;
-		font-size: 13px;
-		justify-content: center;
-	}
-	.modal-login .modal-footer a {
-		color: #999;
-	}
-	.trigger-btn {
-		display: inline-block;
-		margin: 100px auto;
-	}
-</style>
-</head>
-<body>
-<div class="text-center">
-	<!-- Button HTML (to Trigger Modal) -->
-	<a href="#myModal" class="trigger-btn" data-toggle="modal">Click to log in</a>
-</div>
+<html>
+    <head>
+	<link rel="stylesheet" href="https://openlayers.org/en/v5.3.0/css/ol.css" type="text/css">
+    <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
 
-<!-- Modal HTML -->
-<div id="myModal" class="modal fade">
-	<div class="modal-dialog modal-login">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h4 class="modal-title">Admin Login</h4>
-				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-			</div>
-			<div class="modal-body">
-				<form action="/examples/actions/confirmation.php" method="post">
-					<div class="form-group">
-						<i class="fa fa-user"></i>
-						<input type="text" class="form-control" placeholder="Username" required="required">
-					</div>
-					<div class="form-group">
-						<i class="fa fa-lock"></i>
-						<input type="password" class="form-control" placeholder="Password" required="required">
-					</div>
-					<div class="form-group">
-						<input type="submit" class="btn btn-primary btn-block btn-lg" value="Login">
-					</div>
-				</form>
+        <title></title>
+        <script src="http://openlayers.org/api/OpenLayers.js"></script>
+        <script type="text/javascript">
 
-			</div>
-			<div class="modal-footer">
-				<a href="#">Forgot Password?</a>
-			</div>
-		</div>
-	</div>
-</div>
-</body>
+
+
+            var lat=40.736851;
+            var lon=22.920227;
+            var zoom=15;
+            var map;
+
+            function init(){
+                map = new OpenLayers.Map ("map", {
+                controls:[
+                    new OpenLayers.Control.Navigation(),
+                    new OpenLayers.Control.PanZoomBar(),
+                    new OpenLayers.Control.LayerSwitcher(),
+                    new OpenLayers.Control.Attribution()],
+                    maxExtent: new OpenLayers.Bounds(-20037508.34,-20037508.34,20037508.34,20037508.34),
+                    maxResolution: 156543.0399,
+                    numZoomLevels: 19,
+                    units: 'm',
+                    projection: new OpenLayers.Projection("EPSG:900913"),
+                    displayProjection: new OpenLayers.Projection("EPSG:4326"),
+
+                } );
+
+
+                map.addLayer(new OpenLayers.Layer.OSM());
+
+                var lonLat = new OpenLayers.LonLat(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913"));
+
+                map.setCenter (lonLat, zoom);
+
+
+
+
+				var layer2 = new OpenLayers.Layer.Vector("Test", {
+    projection: new OpenLayers.Projection("EPSG:4326"),
+    strategies: [new OpenLayers.Strategy.Fixed()],
+    protocol: new OpenLayers.Protocol.HTTP({
+        url: "map.kml",
+        format: new OpenLayers.Format.KML({
+            extractStyles: true,
+            extractAttributes: true
+        })
+    })
+});
+
+				map.addLayer(layer2);
+
+
+            }
+        </script>
+
+    </head>
+    <body onload="init()">
+        <div id="map" class="smallmap"></div>
+        </div>
+<?php
+/**** Configuration ****/
+// The KML file you want to process
+$kml_file = 'map.kml';
+// The name of the table to create in the SQL file
+$table_name = 'dataset';
+// Whether to escape the ampersands in the KML; shp2kml doesn't do it
+// Change only if you're having problems
+$auto_escape = true;
+/***************************/
+/**** Meat and Potatoes ****/
+/***************************/
+$kml = file_get_contents($kml_file);
+if ($auto_escape)
+  $kml = str_replace('&', '&amp;', $kml);
+$places_xml = simplexml_load_string($kml);
+$headings = array('NAME', 'LONGITUDE', 'LATITUDE','COORDINATES');
+$headings_mapped = false;
+$data = array();
+foreach ($places_xml->Document->Folder[0]->Placemark as $place) {
+  $row = array(
+    $place->name,
+    $place->MultiGeometry->Polygon->outerBoundaryIs->LinearRing->coordinates
+  );
+  $desc_bits = explode('</tr>', $place->description);
+  array_pop($desc_bits);
+  array_shift($desc_bits);
+  foreach ($desc_bits as $item) {
+    if (empty($item))
+      continue;
+    $item_bits = explode('</td>', $item);
+    $item_head = trim(strip_tags($item_bits[0]));
+    $item_value = trim(strip_tags($item_bits[1]));
+    if (!$headings_mapped) {
+      if (strtolower($item_head) != 'name')
+        $headings[] = $item_head;
+    }
+    if (strtolower($item_head) != 'name')
+      $row[] = $item_value;
+  }
+  $headings_mapped = true;
+  $data[] = $row;
+}
+$output = '';
+$output = 'CREATE TABLE IF NOT EXISTS `' . $table_name . "` (\n";
+$output .= "\t`id` int(11) NOT NULL AUTO_INCREMENT,\n";
+$output .= "\t`name` varchar(100) COLLATE utf8_unicode_ci NOT NULL,\n";
+$output .= "\t`lat` double NOT NULL,\n";
+$output .= "\t`lng` double NOT NULL,\n";
+$output .= "\t`coords` int(20) NOT NULL AUTO_INCREMENT,\n";
+$fields = array();
+foreach (array_slice($headings, 4) as $head) {
+  $output .= "\t`" . $head . "` text COLLATE utf8_unicode_ci NOT NULL,\n";
+  $fields[] = '`' . $head . '`';
+}
+$output .= "\tPRIMARY KEY (`id`)\n";
+$output .= ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;\n\n";
+$output .= 'INSERT INTO `' . $table_name . '` (`name`, `lat` ,`lng`,`coords` ' . implode(', ', $fields) . ") VALUES\n";
+$values = array();
+foreach ($data as $row) {
+
+  $values[] = '("' . implode('", "', $row) . '")';
+}
+$output .= implode(",\n", $values);
+$output .= ";\n";
+file_put_contents(str_replace('.kml', '.sql', $kml_file), $output);
+?>
+
+
+<?php
+
+$filename = 'map.sql';
+$con=mysqli_connect("localhost","root", "", "map_data");
+if(!$con){
+    die("Connect failed: ".mysqli_error($con));
+}
+if (mysqli_connect_errno()) {
+    die("Connect failed: ".mysqli_connect_errno()." : ". mysqli_connect_error());
+}
+echo "ise pollis";
+$maxRuntime = 8; // less then your max script execution limit
+
+
+$deadline = time()+$maxRuntime;
+$progressFilename = $filename.'_filepointer'; // tmp file for progress
+$errorFilename = $filename.'_error'; // tmp file for erro
+($fp = fopen($filename, 'r')) OR die('failed to open file:'.$filename);
+
+// check for previous error
+if( file_exists($errorFilename) ){
+    die('<pre> previous error: '.file_get_contents($errorFilename));
+}
+
+// activate automatic reload in browser
+echo '<html><head> <meta http-equiv="refresh" content="'.($maxRuntime+2).'"><pre>';
+
+// go to previous file position
+$filePosition = 0;
+if( file_exists($progressFilename) ){
+    $filePosition = file_get_contents($progressFilename);
+    fseek($fp, $filePosition);
+}
+
+$queryCount = 0;
+$query = '';
+while( $deadline>time() AND ($line=fgets($fp, 1024000)) ){
+    if(substr($line,0,2)=='--' OR trim($line)=='' ){
+        continue;
+    }
+
+    $query .= $line;
+    if( substr(trim($query),-1)==';' ){
+        if( !mysql_query($query) ){
+            $error = 'Error performing query \'<strong>' . $query . '\': ' . mysql_error();
+            file_put_contents($errorFilename, $error."\n");
+            exit;
+        }
+        $query = '';
+        file_put_contents($progressFilename, ftell($fp)); // save the current file position for
+        $queryCount++;
+    }
+}
+
+if( feof($fp) ){
+    echo 'dump successfully restored!';
+}else{
+    echo ftell($fp).'/'.filesize($filename).' '.(round(ftell($fp)/filesize($filename), 2)*100).'%'."\n";
+    echo $queryCount.' queries processed! please reload or wait for automatic browser refresh!';
+}
+
+?>
+
+    </body>
 </html>
