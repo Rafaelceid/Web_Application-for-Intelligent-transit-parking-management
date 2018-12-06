@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS `dataset` (
 	`lat` double NOT NULL,
 	`lng` double NOT NULL,
 	`coords` int(20) NOT NULL AUTO_INCREMENT,
+	`coords` int(20) NOT NULL AUTO_INCREMENT,
 	PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;
 

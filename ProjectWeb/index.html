@@ -113,6 +113,7 @@ $output .= "\t`name` varchar(100) COLLATE utf8_unicode_ci NOT NULL,\n";
 $output .= "\t`lat` double NOT NULL,\n";
 $output .= "\t`lng` double NOT NULL,\n";
 $output .= "\t`coords` int(20) NOT NULL AUTO_INCREMENT,\n";
+$output .= "\t`coords` int(20) NOT NULL AUTO_INCREMENT,\n";
 $fields = array();
 foreach (array_slice($headings, 4) as $head) {
   $output .= "\t`" . $head . "` text COLLATE utf8_unicode_ci NOT NULL,\n";
@@ -132,23 +133,26 @@ file_put_contents(str_replace('.kml', '.sql', $kml_file), $output);
 ?>
 
 
+
+
 <?php
 
-$filename = 'map.sql';
-$con=mysqli_connect("localhost","root", "", "map_data");
-if(!$con){
-    die("Connect failed: ".mysqli_error($con));
-}
-if (mysqli_connect_errno()) {
-    die("Connect failed: ".mysqli_connect_errno()." : ". mysqli_connect_error());
-}
-echo "ise pollis";
+// your config
+$filename = 'omonoia.sql';
+$dbHost = 'localhost';
+$dbUser = 'root';
+$dbPass = '';
+$dbName = 'map_data';
 $maxRuntime = 8; // less then your max script execution limit
 
 
-$deadline = time()+$maxRuntime;
+$deadline = time()+$maxRuntime; 
 $progressFilename = $filename.'_filepointer'; // tmp file for progress
 $errorFilename = $filename.'_error'; // tmp file for erro
+
+$con = mysqli_connect($dbHost, $dbUser, $dbPass, $dbName) OR die('connecting to host: '.$dbHost.' failed: '.mysqli_error($con));
+mysqli_select_db($con,$dbName) OR die('select db: '.$dbName.' failed: '.mysqli_error($con));
+
 ($fp = fopen($filename, 'r')) OR die('failed to open file:'.$filename);
 
 // check for previous error
@@ -175,13 +179,13 @@ while( $deadline>time() AND ($line=fgets($fp, 1024000)) ){
 
     $query .= $line;
     if( substr(trim($query),-1)==';' ){
-        if( !mysql_query($query) ){
-            $error = 'Error performing query \'<strong>' . $query . '\': ' . mysql_error();
+        if( !mysqli_query($con,$query) ){
+            $error = 'Error performing query \'<strong>' . $query . '\': ' . mysqli_error($con);
             file_put_contents($errorFilename, $error."\n");
             exit;
         }
         $query = '';
-        file_put_contents($progressFilename, ftell($fp)); // save the current file position for
+        file_put_contents($progressFilename, ftell($fp)); // save the current file position for 
         $queryCount++;
     }
 }
@@ -192,8 +196,8 @@ if( feof($fp) ){
     echo ftell($fp).'/'.filesize($filename).' '.(round(ftell($fp)/filesize($filename), 2)*100).'%'."\n";
     echo $queryCount.' queries processed! please reload or wait for automatic browser refresh!';
 }
-
 ?>
+
 
     </body>
 </html>
