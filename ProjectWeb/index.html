@@ -3,7 +3,26 @@
 	<link rel="stylesheet" href="https://openlayers.org/en/v5.3.0/css/ol.css" type="text/css">
     <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
     <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
-
+	<style>
+      #map {
+        position: relative;
+      }
+      #info {
+        position: absolute;
+        height: 1px;
+        width: 1px;
+        z-index: 100;
+      }
+      .tooltip.in {
+        opacity: 1;
+      }
+      .tooltip.top .tooltip-arrow {
+        border-top-color: white;
+      }
+      .tooltip-inner {
+        border: 2px solid white;
+      }
+    </style>
         <title></title>
         <script src="http://openlayers.org/api/OpenLayers.js"></script>
         <script type="text/javascript">
@@ -48,12 +67,19 @@
         url: "map.kml",
         format: new OpenLayers.Format.KML({
             extractStyles: true,
-            extractAttributes: true
+            extractAttributes: true,
+			maxDepth: 50
         })
     })
 });
 
-				map.addLayer(layer2);
+map.addLayer(layer2);
+
+
+
+
+
+
 
 
             }
@@ -61,27 +87,24 @@
 
     </head>
     <body onload="init()">
-        <div id="map" class="smallmap"></div>
-        </div>
+         <div id="map" class="map"><div id="info"></div></div>
 
 
 
 
+<?php
 
-        <?php
-
-        // your config
-        $dbHost = 'localhost';
-        $dbUser = 'root';
-        $dbPass = '121213';
-        $dbName = 'map_data';
-        $maxRuntime = 8; // less then your max script execution limit
-
-
-        $deadline = time()+$maxRuntime;
+// your config
+$dbHost = 'localhost';
+$dbUser = 'root';
+$dbPass = '121213';
+$dbName = 'map_data';
+$maxRuntime = 8; // less then your max script execution limit
 
 
-        $con = mysqli_connect($dbHost, $dbUser, $dbPass) OR die('connecting to host: '.$dbHost.' failed: '.mysqli_error($con));
+$deadline = time()+$maxRuntime;
+
+$con = mysqli_connect($dbHost, $dbUser, $dbPass) OR die('connecting to host: '.$dbHost.' failed: '.mysqli_error($con));
         $db_selected = mysqli_select_db($con,$dbName) OR $sql = "CREATE DATABASE map_data";
         if (!$db_selected){
         if (mysqli_query($con, $sql)) {
@@ -105,63 +128,74 @@
             echo "Error creating Table: " . mysqli_error($con);
         }
 
-        /**** Configuration ****/
-        // The KML file you want to process
-        $kml_file = 'map.kml';
-        // The name of the table to create in the SQL file
-        $table_name = 'dataset';
-        // Whether to escape the ampersands in the KML; shp2kml doesn't do it
-        // Change only if you're having problems
-        $auto_escape = true;
-        /***************************/
-        /**** Meat and Potatoes ****/
-        /***************************/
-        $kml = file_get_contents($kml_file);
-        if ($auto_escape)
-          $kml = str_replace('&', '&amp;', $kml);
-        $places_xml = simplexml_load_string($kml);
-        $headings = array('NAME', 'LONGITUDE', 'LATITUDE','COORDINATES');
-        $headings_mapped = false;
-        $data = array();
-        foreach ($places_xml->Document->Folder[0]->Placemark as $place) {
-          $row = array(
-            $place->name,
-            $place->MultiGeometry->Polygon->outerBoundaryIs->LinearRing->coordinates,
-        	$place->description
-          );
-          $desc_bits = explode('</tr>', $place->description);
-          array_pop($desc_bits);
-          array_shift($desc_bits);
-          foreach ($desc_bits as $item) {
-            if (empty($item))
-              continue;
-            $item_bits = explode('</td>', $item);
-            $item_head = trim(strip_tags($item_bits[0]));
-            $item_value = trim(strip_tags($item_bits[1]));
-            if (!$headings_mapped) {
-              if (strtolower($item_head) != 'name')
-                $headings[] = $item_head;
-            }
-            if (strtolower($item_head) != 'name')
-              $row[] = $item_value;
-          }
-          $headings_mapped = true;
-          $data[] = $row;
-        }
-
-        foreach ($data as $row) {
-        $query = "INSERT INTO `coordinates` (`name`,`coords`,`description`) VALUES ('$row[0]','$row[1]','$row[2]')";
-        if ($con->query($query) === TRUE) {
-        } else {
-            echo "Error: " . $query . "<br>" . $con->error;
-        }
-
-        }
+try {
+    $con = new PDO("mysql:host=$dbHost;dbname=$dbName", $dbUser, $dbPass);
+    // set the PDO error mode to exception
+    $con->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 
 
-        ?>
+/**** Configuration ****/
+// The KML file you want to process
+$kml_file = 'map.kml';
+// The name of the table to create in the SQL file
+$table_name = 'dataset';
+// Whether to escape the ampersands in the KML; shp2kml doesn't do it
+// Change only if you're having problems
+$auto_escape = true;
+/***************************/
+/**** Meat and Potatoes ****/
+/***************************/
+$kml = file_get_contents($kml_file);
+if ($auto_escape)
+  $kml = str_replace('&', '&amp;', $kml);
+$places_xml = simplexml_load_string($kml);
+$headings = array('NAME', 'LONGITUDE', 'LATITUDE','COORDINATES');
+$headings_mapped = false;
+$data = array();
+foreach ($places_xml->Document->Folder[0]->Placemark as $place) {
+  $row = array(
+    $place->name,
+    $place->MultiGeometry->Polygon->outerBoundaryIs->LinearRing->coordinates,
+	$place->description
+  );
+  $desc_bits = explode('</tr>', $place->description);
+  array_pop($desc_bits);
+  array_shift($desc_bits);
+  foreach ($desc_bits as $item) {
+    if (empty($item))
+      continue;
+    $item_bits = explode('</td>', $item);
+    $item_head = trim(strip_tags($item_bits[0]));
+    $item_value = trim(strip_tags($item_bits[1]));
+    if (!$headings_mapped) {
+      if (strtolower($item_head) != 'name')
+        $headings[] = $item_head;
+    }
+    if (strtolower($item_head) != 'name')
+      $row[] = $item_value;
+  }
+  $headings_mapped = true;
+  $data[] = $row;
+}
 
+
+
+$con->beginTransaction();
+foreach ($data as $row) {
+$con->exec("INSERT INTO `coordinates` (`name`,`coords`,`description`) VALUES ('$row[0]','$row[1]','$row[2]')");
+}
+$con->commit();
+echo "New records created successfully";
+}
+catch(PDOException $e)
+    {
+    // roll back the transaction if something failed
+    $con->rollback();
+    echo "Error: " . $e->getMessage();
+    }
+$con = null;
+?>
 
     </body>
 </html>
