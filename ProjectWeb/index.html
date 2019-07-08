@@ -1,98 +1,66 @@
 <html>
-    <head>
-	<link rel="stylesheet" href="https://openlayers.org/en/v5.3.0/css/ol.css" type="text/css">
-    <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
-    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
-	<style>
-      #map {
-        position: relative;
-      }
-      #info {
-        position: absolute;
-        height: 1px;
-        width: 1px;
-        z-index: 100;
-      }
-      .tooltip.in {
-        opacity: 1;
-      }
-      .tooltip.top .tooltip-arrow {
-        border-top-color: white;
-      }
-      .tooltip-inner {
-        border: 2px solid white;
-      }
-    </style>
-        <title></title>
-        <script src="http://openlayers.org/api/OpenLayers.js"></script>
-        <script type="text/javascript">
+  <head><title>OpenLayers KML Example</title></head>
+  <body>
+  <div id="mapdiv"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/openlayers/2.11/lib/OpenLayers.js"></script>           
+  
+  <script>
+    map = new OpenLayers.Map("mapdiv");
+    map.addLayer(new OpenLayers.Layer.OSM());
+       
+    var kmllayer = new OpenLayers.Layer.Vector("KML", {
+            strategies: [new OpenLayers.Strategy.Fixed()],
+            protocol: new OpenLayers.Protocol.HTTP({
+                url: "./map.kml",
+                format: new OpenLayers.Format.KML({
+                    extractStyles: true, 
+                    extractAttributes: true,
+                    maxDepth: 2
+                })
+            })
+        });
+        
+    map.addLayer(kmllayer);
+    
+    //Set start centrepoint and zoom
+    //TODO: Is it possible to just zoom to extents of KML objects instead?
+    
+    var lonLat = new OpenLayers.LonLat( 22.920227 , 40.736851 )
+          .transform(
+            new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
+            map.getProjectionObject() // to Spherical Mercator Projection
+          );
+    var zoom=14;
+    map.setCenter (lonLat, zoom);  
+    
+    //Add a selector control to the kmllayer with popup functions
+    var controls = {
+      selector: new OpenLayers.Control.SelectFeature(kmllayer, { onSelect: createPopup, onUnselect: destroyPopup })
+    };
 
+    function createPopup(feature) {
+      feature.popup = new OpenLayers.Popup.FramedCloud("pop",
+          feature.geometry.getBounds().getCenterLonLat(),
+          null,
+          '<div class="markerContent">'+feature.attributes.description+'</div>',
+          null,
+          true,
+          function() { controls['selector'].unselectAll(); }
+      );
+      //feature.popup.closeOnMove = true;
+      map.addPopup(feature.popup);
+    }
 
-
-            var lat=40.736851;
-            var lon=22.920227;
-            var zoom=15;
-            var map;
-
-            function init(){
-                map = new OpenLayers.Map ("map", {
-                controls:[
-                    new OpenLayers.Control.Navigation(),
-                    new OpenLayers.Control.PanZoomBar(),
-                    new OpenLayers.Control.LayerSwitcher(),
-                    new OpenLayers.Control.Attribution()],
-                    maxExtent: new OpenLayers.Bounds(-20037508.34,-20037508.34,20037508.34,20037508.34),
-                    maxResolution: 156543.0399,
-                    numZoomLevels: 19,
-                    units: 'm',
-                    projection: new OpenLayers.Projection("EPSG:900913"),
-                    displayProjection: new OpenLayers.Projection("EPSG:4326"),
-
-                } );
-
-
-                map.addLayer(new OpenLayers.Layer.OSM());
-
-                var lonLat = new OpenLayers.LonLat(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913"));
-
-                map.setCenter (lonLat, zoom);
-
-
-
-
-				var layer2 = new OpenLayers.Layer.Vector("Test", {
-    projection: new OpenLayers.Projection("EPSG:4326"),
-    strategies: [new OpenLayers.Strategy.Fixed()],
-    protocol: new OpenLayers.Protocol.HTTP({
-        url: "map.kml",
-        format: new OpenLayers.Format.KML({
-            extractStyles: true,
-            extractAttributes: true,
-			maxDepth: 50
-        })
-    })
-});
-
-map.addLayer(layer2);
-
-
-
-
-
-
-
-
-            }
-        </script>
-
-    </head>
-    <body onload="init()">
-         <div id="map" class="map"><div id="info"></div></div>
-
-
-
-
-<?php
+    function destroyPopup(feature) {
+      feature.popup.destroy();
+      feature.popup = null;
+    }
+    
+    map.addControl(controls['selector']);
+    controls['selector'].activate();
+  </script>
+  
+  <?php
 
 // your config
 $dbHost = 'localhost';
@@ -102,7 +70,7 @@ $dbName = 'map_data';
 $maxRuntime = 8; // less then your max script execution limit
 
 
-$deadline = time()+$maxRuntime;
+$deadline = time()+$maxRuntime; 
 
 $con = mysqli_connect($dbHost, $dbUser, $dbPass) OR die('connecting to host: '.$dbHost.' failed: '.mysqli_error($con));
         $db_selected = mysqli_select_db($con,$dbName) OR $sql = "CREATE DATABASE map_data";
@@ -132,7 +100,7 @@ try {
     $con = new PDO("mysql:host=$dbHost;dbname=$dbName", $dbUser, $dbPass);
     // set the PDO error mode to exception
     $con->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+	
 
 
 /**** Configuration ****/
@@ -197,5 +165,8 @@ catch(PDOException $e)
 $con = null;
 ?>
 
-    </body>
+  
+</body>
+
 </html>
+    
