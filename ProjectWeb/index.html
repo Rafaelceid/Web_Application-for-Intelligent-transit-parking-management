@@ -1,6 +1,8 @@
 <html>
   <head><title>OpenLayers KML Example</title></head>
   <body>
+  <div>
+</div>
   <div id="mapdiv"></div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/openlayers/2.11/lib/OpenLayers.js"></script>           
   
@@ -65,7 +67,7 @@
 // your config
 $dbHost = 'localhost';
 $dbUser = 'root';
-$dbPass = '121213';
+$dbPass = '';
 $dbName = 'map_data';
 $maxRuntime = 8; // less then your max script execution limit
 
@@ -127,6 +129,12 @@ foreach ($places_xml->Document->Folder[0]->Placemark as $place) {
     $place->MultiGeometry->Polygon->outerBoundaryIs->LinearRing->coordinates,
 	$place->description
   );
+  getCentroidOfPolygon( $place->MultiGeometry->Polygon->outerBoundaryIs->LinearRing->coordinates);
+ 
+	$new_coor[1] = explode (",", trim($row[1]));  
+	print_r($new_coor); 
+  
+
   $desc_bits = explode('</tr>', $place->description);
   array_pop($desc_bits);
   array_shift($desc_bits);
