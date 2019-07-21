@@ -2,7 +2,7 @@
  <?php
  $polygon = new stdClass();
  $polygon->rings = array( array( array(-93.3934,45.07184), array(-93.3935,45.07173), array(-93.393183,45.071321), array(-93.3934,45.07184) ));
-
+  
  function getAreaOfPolygon($geometry) {
     $area = 0;
     for ($ri=0, $rl=sizeof($geometry->rings); $ri<$rl; $ri++) {
@@ -23,8 +23,8 @@
 }
 
 
-
-
+ 
+ 
  function getCentroidOfPolygon($geometry) {
     $cx = 0;
     $cy = 0;
@@ -50,9 +50,9 @@
     $cy = -$cy / ( 6 * $area);
 
     // done!
-
+    
     return array($cx,$cy);
-
+    
 
 }
 $d=getCentroidOfPolygon($polygon);
