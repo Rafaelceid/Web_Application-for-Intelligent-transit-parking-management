@@ -16,7 +16,7 @@ $row = mysqli_fetch_array($result,MYSQLI_BOTH);
 
 if ($row['username'] == $username && $row['password'] == $password)
 	{
-		 header('Location: http://localhost/rousoi/login/browse_file/browse_file.html');
+		 header('Location: http://localhost/Rousoi/ProjectWeb/login/browse_file/browse_file.html');
 
 	}
 else
