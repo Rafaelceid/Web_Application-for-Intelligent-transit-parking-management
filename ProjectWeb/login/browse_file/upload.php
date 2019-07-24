@@ -2,7 +2,6 @@
 if (isset($_FILES['filename'])) 
     {
         $file = $_FILES['filename'];
-        print_r($file);
         $file_name = $file['name'];
         $file_tmp = $file['tmp_name'];
         $file_size = $file['size'];
@@ -13,9 +12,12 @@ if (isset($_FILES['filename']))
         if(in_array($file_ext,$check_ext))
         {
             echo"true";
+            $file_store = "upload/"."map.kml";
+            move_uploaded_file($file_tmp,$file_store);
         }
-        
-        
+        else {
+            echo"wrong file";
+        }
 
      }
 ?>

@@ -1,0 +1,180 @@
+<html>
+  <head><title>OpenLayers KML Example</title></head>
+  <body>
+  <div>
+</div>
+  <div id="mapdiv"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/openlayers/2.11/lib/OpenLayers.js"></script>           
+  
+  <script>
+    map = new OpenLayers.Map("mapdiv");
+    map.addLayer(new OpenLayers.Layer.OSM());
+       
+    var kmllayer = new OpenLayers.Layer.Vector("KML", {
+            strategies: [new OpenLayers.Strategy.Fixed()],
+            protocol: new OpenLayers.Protocol.HTTP({
+                url: "./map.kml",
+                format: new OpenLayers.Format.KML({
+                    extractStyles: true, 
+                    extractAttributes: true,
+                    maxDepth: 2
+                })
+            })
+        });
+        
+    map.addLayer(kmllayer);
+    
+    //Set start centrepoint and zoom
+    //TODO: Is it possible to just zoom to extents of KML objects instead?
+    
+    var lonLat = new OpenLayers.LonLat( 22.920227 , 40.736851 )
+          .transform(
+            new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
+            map.getProjectionObject() // to Spherical Mercator Projection
+          );
+    var zoom=14;
+    map.setCenter (lonLat, zoom);  
+    
+    //Add a selector control to the kmllayer with popup functions
+    var controls = {
+      selector: new OpenLayers.Control.SelectFeature(kmllayer, { onSelect: createPopup, onUnselect: destroyPopup })
+    };
+
+    function createPopup(feature) {
+      feature.popup = new OpenLayers.Popup.FramedCloud("pop",
+          feature.geometry.getBounds().getCenterLonLat(),
+          null,
+          '<div class="markerContent">'+feature.attributes.description+'</div>',
+          null,
+          true,
+          function() { controls['selector'].unselectAll(); }
+      );
+      //feature.popup.closeOnMove = true;
+      map.addPopup(feature.popup);
+    }
+
+    function destroyPopup(feature) {
+      feature.popup.destroy();
+      feature.popup = null;
+    }
+    
+    map.addControl(controls['selector']);
+    controls['selector'].activate();
+  </script>
+  
+  <?php
+
+// your config
+$dbHost = 'localhost';
+$dbUser = 'root';
+$dbPass = '';
+$dbName = 'map_data';
+$maxRuntime = 8; // less then your max script execution limit
+
+
+$deadline = time()+$maxRuntime; 
+
+$con = mysqli_connect($dbHost, $dbUser, $dbPass) OR die('connecting to host: '.$dbHost.' failed: '.mysqli_error($con));
+        $db_selected = mysqli_select_db($con,$dbName) OR $sql = "CREATE DATABASE map_data";
+        if (!$db_selected){
+        if (mysqli_query($con, $sql)) {
+            echo "Database created successfully";
+        	mysqli_select_db($con,$dbName);
+        } else {
+            echo "Error creating database: " . mysqli_error($con);
+        }
+        }
+
+        $sql = "CREATE TABLE IF NOT EXISTS coordinates (
+        id int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        name varchar(100) COLLATE utf8_unicode_ci NOT NULL,
+        coords varchar(999) NOT NULL,
+        description varchar(999) NOT NULL
+        )";
+        if (mysqli_query($con, $sql)) {
+            echo "Table created successfully";
+        	mysqli_select_db($con,$dbName);
+        } else {
+            echo "Error creating Table: " . mysqli_error($con);
+        }
+
+try {
+    $con = new PDO("mysql:host=$dbHost;dbname=$dbName", $dbUser, $dbPass);
+    // set the PDO error mode to exception
+    $con->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+	
+
+
+/**** Configuration ****/
+// The KML file you want to process
+$kml_file = 'map.kml';
+// The name of the table to create in the SQL file
+$table_name = 'dataset';
+// Whether to escape the ampersands in the KML; shp2kml doesn't do it
+// Change only if you're having problems
+$auto_escape = true;
+/***************************/
+/**** Meat and Potatoes ****/
+/***************************/
+$kml = file_get_contents($kml_file);
+if ($auto_escape)
+  $kml = str_replace('&', '&amp;', $kml);
+$places_xml = simplexml_load_string($kml);
+$headings = array('NAME', 'LONGITUDE', 'LATITUDE','COORDINATES');
+$headings_mapped = false;
+$data = array();
+foreach ($places_xml->Document->Folder[0]->Placemark as $place) {
+  $row = array(
+    $place->name,
+    $place->MultiGeometry->Polygon->outerBoundaryIs->LinearRing->coordinates,
+	$place->description
+  );
+  getCentroidOfPolygon( $place->MultiGeometry->Polygon->outerBoundaryIs->LinearRing->coordinates);
+ 
+	$new_coor[1] = explode (",", trim($row[1]));  
+	print_r($new_coor); 
+  
+
+  $desc_bits = explode('</tr>', $place->description);
+  array_pop($desc_bits);
+  array_shift($desc_bits);
+  foreach ($desc_bits as $item) {
+    if (empty($item))
+      continue;
+    $item_bits = explode('</td>', $item);
+    $item_head = trim(strip_tags($item_bits[0]));
+    $item_value = trim(strip_tags($item_bits[1]));
+    if (!$headings_mapped) {
+      if (strtolower($item_head) != 'name')
+        $headings[] = $item_head;
+    }
+    if (strtolower($item_head) != 'name')
+      $row[] = $item_value;
+  }
+  $headings_mapped = true;
+  $data[] = $row;
+}
+
+
+
+$con->beginTransaction();
+foreach ($data as $row) {
+$con->exec("INSERT INTO `coordinates` (`name`,`coords`,`description`) VALUES ('$row[0]','$row[1]','$row[2]')");
+}
+$con->commit();
+echo "New records created successfully";
+}
+catch(PDOException $e)
+    {
+    // roll back the transaction if something failed
+    $con->rollback();
+    echo "Error: " . $e->getMessage();
+    }
+$con = null;
+?>
+
+  
+</body>
+
+</html>
+    
