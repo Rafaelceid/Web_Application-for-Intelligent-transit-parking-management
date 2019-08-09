@@ -1,0 +1,40 @@
+ 
+ <?php
+	
+	$servername = "localhost";
+	$username = "root";
+	$password = "";
+	$dbname = "map_data";
+
+	// Create connection
+	$conn = new mysqli($servername, $username, $password, $dbname);
+	// Check connection
+	if ($conn->connect_error) {
+		 die("Connection failed: " . $conn->connect_error);
+	} 
+
+	$query = "SELECT coords FROM coordinates";
+	$result = $conn->query($query);
+	
+	//DECLARE YOUR ARRAY WHERE YOU WILL KEEP YOUR RECORD SETS
+$data_array=array();
+$final_array=array();
+//STORE ALL THE RECORD SETS IN THAT ARRAY 
+while ($row = mysqli_fetch_array($result, MYSQLI_ASSOC)) 
+{
+    array_push($data_array,$row);
+}
+mysqli_free_result($result);
+
+foreach ($data_array as $value)
+{
+$value=implode(" ",$value);
+$temp = explode (" ", $value); 
+array_push($final_array,array_chunk($temp, 1));
+}
+echo '<pre>';
+print_r($final_array);
+echo '</pre>';
+
+
+?>
