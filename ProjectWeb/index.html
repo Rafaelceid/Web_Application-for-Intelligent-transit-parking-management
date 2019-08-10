@@ -62,7 +62,7 @@
     controls['selector'].activate();
   </script>
   
-  <?php
+<?php
 
 // your config
 $dbHost = 'localhost';
@@ -89,7 +89,8 @@ $con = mysqli_connect($dbHost, $dbUser, $dbPass) OR die('connecting to host: '.$
         id int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
         name varchar(100) COLLATE utf8_unicode_ci NOT NULL,
         coords varchar(999) NOT NULL,
-        description varchar(999) NOT NULL
+        description varchar(999) NOT NULL,
+        centroid varchar(999) NULL
         )";
         if (mysqli_query($con, $sql)) {
             echo "Table created successfully";
@@ -129,10 +130,7 @@ foreach ($places_xml->Document->Folder[0]->Placemark as $place) {
     $place->MultiGeometry->Polygon->outerBoundaryIs->LinearRing->coordinates,
 	$place->description
   );
-  getCentroidOfPolygon( $place->MultiGeometry->Polygon->outerBoundaryIs->LinearRing->coordinates);
- 
-	$new_coor[1] = explode (",", trim($row[1]));  
-	print_r($new_coor); 
+   
   
 
   $desc_bits = explode('</tr>', $place->description);

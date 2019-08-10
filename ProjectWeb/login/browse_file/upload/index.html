@@ -129,10 +129,6 @@ foreach ($places_xml->Document->Folder[0]->Placemark as $place) {
     $place->MultiGeometry->Polygon->outerBoundaryIs->LinearRing->coordinates,
 	$place->description
   );
-  getCentroidOfPolygon( $place->MultiGeometry->Polygon->outerBoundaryIs->LinearRing->coordinates);
- 
-	$new_coor[1] = explode (",", trim($row[1]));  
-	print_r($new_coor); 
   
 
   $desc_bits = explode('</tr>', $place->description);

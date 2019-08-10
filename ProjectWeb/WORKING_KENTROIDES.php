@@ -1,8 +1,45 @@
-
+ 
  <?php
- $polygon = new stdClass();
- $polygon->rings = array( array( array(-93.3934,45.07184), array(-93.3935,45.07173), array(-93.393183,45.071321), array(-93.3934,45.07184) ));
-  
+
+include 'conecto_database.php';
+
+	$query = "SELECT coords FROM coordinates";
+	$result = $conn->query($query);
+	
+	//DECLARE YOUR ARRAY WHERE YOU WILL KEEP YOUR RECORD SETS
+$data_array=array();
+$final_array=array();
+$temp_array=array();
+//STORE ALL THE RECORD SETS IN THAT ARRAY 
+while ($row = mysqli_fetch_array($result, MYSQLI_ASSOC)) 
+{
+    array_push($data_array,$row);
+}
+mysqli_free_result($result);
+
+foreach ($data_array as $value)
+{
+$value=implode(" ",$value);
+$temp = explode (" ",$value); 
+array_push($temp_array,array_chunk($temp,1));
+}
+
+foreach ($temp_array as &$value)
+{
+foreach ($value as &$coords)
+{
+$coords=explode (",",$coords[0]); 
+}
+}
+error_reporting(E_ERROR | E_PARSE);
+
+$centroids=array();
+ foreach ($temp_array as $testi)
+ {
+ $geometry = new stdClass();
+ $geometry->rings = array($testi);
+ array_push($centroids,getCentroidOfPolygon($geometry));
+ }
  function getAreaOfPolygon($geometry) {
     $area = 0;
     for ($ri=0, $rl=sizeof($geometry->rings); $ri<$rl; $ri++) {
@@ -55,6 +92,21 @@
     
 
 }
-$d=getCentroidOfPolygon($polygon);
-print_r($d)
+
+echo '<pre>';
+print_r($centroids[1]);
+echo '</pre>';
+
+for ($i = 0; $i < count($centroids); $i++) {
+    $c = $centroids[$i][0]. "," . $centroids[$i][1];
+    $sql = "UPDATE coordinates SET centroid='$c'  WHERE id='$i'";
+
+    if ($conn->query($sql) === TRUE) {
+        echo "Record updated successfully";
+    } else {
+        echo "Error updating record: " . $conn->error;
+    }
+    echo '<pre>';
+
+}
 ?>
