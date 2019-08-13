@@ -45,13 +45,14 @@
           feature.geometry.getBounds().getCenterLonLat(),
           null,
         '<div class="markerContent">'+feature.attributes.description
-        +'<form action="/select.php">'
+        +'<form action="/select.php" method="POST">'
           +'Αρθμός Θέσεων Στάθμευσης:<br>'
             +'<input type="text" name="firstname" value="Mickey"><br>'
              + 'Καμπύλη Ζήτησης:<br>'
               +  '<input type="text" name="lastname" value="Mouse"><br><br>'
-               +   '<input type="submit" value="Submit">'
-				+	'<input type="hidden" name="extra" value="' +feature.attributes.name +'>'
+			   +	'<input type="hidden" value="'+ feature.attributes.name + '"' + 'name="extra">'
+                +   '<input type="submit" value="Submit">'
+				
 				 +    '</form>',
           null,
           true,
@@ -95,7 +96,8 @@ $con = mysqli_connect($dbHost, $dbUser, $dbPass) OR die('connecting to host: '.$
             echo "Error creating database: " . mysqli_error($con);
         }
         }
-
+		$sql="DROP TABLE IF EXISTS `coordinates`";
+		mysqli_query($con, $sql);
         $sql = "CREATE TABLE IF NOT EXISTS coordinates (
         id int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
         name varchar(100) COLLATE utf8_unicode_ci NOT NULL,
