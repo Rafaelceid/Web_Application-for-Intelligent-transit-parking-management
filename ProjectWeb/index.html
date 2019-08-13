@@ -45,13 +45,14 @@
           feature.geometry.getBounds().getCenterLonLat(),
           null,
         '<div class="markerContent">'+feature.attributes.description
-        +'<form action="/action_page.php">'
+        +'<form action="/select.php">'
           +'Αρθμός Θέσεων Στάθμευσης:<br>'
             +'<input type="text" name="firstname" value="Mickey"><br>'
              + 'Καμπύλη Ζήτησης:<br>'
               +  '<input type="text" name="lastname" value="Mouse"><br><br>'
                +   '<input type="submit" value="Submit">'
-       + '</form>',
+				+	'<input type="hidden" name="extra" value="' +feature.attributes.name +'>'
+				 +    '</form>',
           null,
           true,
           function() { controls['selector'].unselectAll(); }
