@@ -44,7 +44,14 @@
       feature.popup = new OpenLayers.Popup.FramedCloud("pop",
           feature.geometry.getBounds().getCenterLonLat(),
           null,
-        '<div class="markerContent">'+feature.attributes.description+"</div><form>First name: <br> <input type='text' name='firstname'><br>Last name:<br><input type='text' name='lastname'></form>",
+        '<div class="markerContent">'+feature.attributes.description
+        +'<form action="/action_page.php">'
+          +'Αρθμός Θέσεων Στάθμευσης:<br>'
+            +'<input type="text" name="firstname" value="Mickey"><br>'
+             + 'Καμπύλη Ζήτησης:<br>'
+              +  '<input type="text" name="lastname" value="Mouse"><br><br>'
+               +   '<input type="submit" value="Submit">'
+       + '</form>',
           null,
           true,
           function() { controls['selector'].unselectAll(); }
