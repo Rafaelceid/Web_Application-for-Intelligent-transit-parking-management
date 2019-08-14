@@ -45,7 +45,8 @@
           feature.geometry.getBounds().getCenterLonLat(),
           null,
         '<div class="markerContent">'+feature.attributes.description
-        +'<form action="select.php" method="POST" id="form" name="form">'
+        + '<iframe name="votar" style="display:none;"></iframe>'
+         +'<form action="select.php" method="POST" id="form" name="form" target="votar">'
           +'Αρθμός Θέσεων Στάθμευσης:<br>'
             +'<input type="text" name="number_p" value="Mickey"><br>'
              + 'Καμπύλη Ζήτησης:<br>'

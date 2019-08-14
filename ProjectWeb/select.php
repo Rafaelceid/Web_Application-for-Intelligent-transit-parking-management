@@ -8,9 +8,9 @@
 
 
 if ($conn->query($query) === TRUE) {
-	echo "Record updated successfully";
+	echo "<script type='text/javascript'>alert('Record updated successfully');</script>";
 } else {
-	echo "Error updating record: " . $conn->error;
+	echo "<script type='text/javascript'>alert('Error updating record.');</script>";
 }
 
 
