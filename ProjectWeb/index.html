@@ -45,9 +45,9 @@
           feature.geometry.getBounds().getCenterLonLat(),
           null,
         '<div class="markerContent">'+feature.attributes.description
-        +'<form action="/select.php" method="POST">'
+        +'<form action="select.php" method="POST" id="form" name="form">'
           +'Αρθμός Θέσεων Στάθμευσης:<br>'
-            +'<input type="text" name="firstname" value="Mickey"><br>'
+            +'<input type="text" name="number_p" value="Mickey"><br>'
              + 'Καμπύλη Ζήτησης:<br>'
               +  '<input type="text" name="lastname" value="Mouse"><br><br>'
 			   +	'<input type="hidden" value="'+ feature.attributes.name + '"' + 'name="extra">'
@@ -103,7 +103,8 @@ $con = mysqli_connect($dbHost, $dbUser, $dbPass) OR die('connecting to host: '.$
         name varchar(100) COLLATE utf8_unicode_ci NOT NULL,
         coords varchar(999) NOT NULL,
         description varchar(999) NOT NULL,
-        centroid varchar(999) NULL
+        centroid varchar(999) NULL,
+        number_parking int(11)
         )";
         if (mysqli_query($con, $sql)) {
             echo "Table created successfully";
@@ -184,7 +185,6 @@ catch(PDOException $e)
 $con = null;
 ?>
 
-  
 </body>
 
 </html>
