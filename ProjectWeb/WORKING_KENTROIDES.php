@@ -4,26 +4,33 @@
 include 'conecto_database.php';
 
 	$query = "SELECT coords FROM coordinates";
-	$result = $conn->query($query);
+	$result = mysqli_query($conn,$query);
 	
 	//DECLARE YOUR ARRAY WHERE YOU WILL KEEP YOUR RECORD SETS
 $data_array=array();
 $final_array=array();
 $temp_array=array();
 //STORE ALL THE RECORD SETS IN THAT ARRAY 
+
+
 while ($row = mysqli_fetch_array($result, MYSQLI_ASSOC)) 
 {
+	
     array_push($data_array,$row);
 }
 mysqli_free_result($result);
+
 
 foreach ($data_array as $value)
 {
 $value=implode(" ",$value);
 $temp = explode (" ",$value); 
+
 array_push($temp_array,array_chunk($temp,1));
 }
-
+echo '<pre>';
+	print_r($temp_array);
+	echo '<pre>';
 foreach ($temp_array as &$value)
 {
 foreach ($value as &$coords)
@@ -31,7 +38,7 @@ foreach ($value as &$coords)
 $coords=explode (",",$coords[0]); 
 }
 }
-error_reporting(E_ERROR | E_PARSE);
+//error_reporting(E_ERROR | E_PARSE);
 
 $centroids=array();
  foreach ($temp_array as $testi)
@@ -93,20 +100,19 @@ $centroids=array();
 
 }
 
-echo '<pre>';
-print_r($centroids[1]);
-echo '</pre>';
-
+$sql=null;
 for ($i = 0; $i < count($centroids); $i++) {
     $c = $centroids[$i][0]. "," . $centroids[$i][1];
-    $sql = "UPDATE coordinates SET centroid='$c'  WHERE id='$i'";
+    $sql .= "UPDATE coordinates SET centroid='$c'  WHERE id='$i';";
 
-    if ($conn->query($sql) === TRUE) {
+    
+
+}
+print_r($sql);
+if ($conn->multi_query($sql) === TRUE) {
         echo "Record updated successfully";
     } else {
         echo "Error updating record: " . $conn->error;
     }
     echo '<pre>';
-
-}
 ?>

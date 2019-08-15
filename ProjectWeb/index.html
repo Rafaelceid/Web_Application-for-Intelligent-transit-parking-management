@@ -27,7 +27,7 @@
     //Set start centrepoint and zoom
     //TODO: Is it possible to just zoom to extents of KML objects instead?
     
-    var lonLat = new OpenLayers.LonLat( 22.920227 , 40.736851 )
+    var lonLat = new OpenLayers.LonLat( 22.944420 , 40.640064 )
           .transform(
             new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
             map.getProjectionObject() // to Spherical Mercator Projection
@@ -67,11 +67,30 @@
       feature.popup.destroy();
       feature.popup = null;
     }
-
-    
-    
-    map.addControl(controls['selector']);
+	map.addControl(controls['selector']);
     controls['selector'].activate();
+	
+	
+	var lonLat2 = new OpenLayers.LonLat( 23.9423862304 , 40.6334858436 )
+          .transform(
+            new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
+            map.getProjectionObject() // to Spherical Mercator Projection
+          );
+	
+	alert(distanceBetweenPoints(lonLat,lonLat2));
+
+	function distanceBetweenPoints(latlng1, latlng2){
+        var point1 = new OpenLayers.Geometry.Point(latlng1.lon, latlng1.lat);
+        var point2 = new OpenLayers.Geometry.Point(latlng2.lon, latlng2.lat);       
+        return point1.distanceTo(point2);
+    }
+	
+	var markers = new OpenLayers.Layer.Markers( "Markers" );
+    map.addLayer(markers);
+    
+    markers.addMarker(new OpenLayers.Marker(lonLat));
+	
+	
   </script>
   
 <?php
@@ -83,7 +102,7 @@ $dbUser = 'root';
 $dbPass = '';
 $dbName = 'map_data';
 $maxRuntime = 8; // less then your max script execution limit
-
+$id=0;
 
 $deadline = time()+$maxRuntime; 
 
@@ -99,15 +118,30 @@ $con = mysqli_connect($dbHost, $dbUser, $dbPass) OR die('connecting to host: '.$
         }
 		$sql="DROP TABLE IF EXISTS `coordinates`";
 		mysqli_query($con, $sql);
+
         $sql = "CREATE TABLE IF NOT EXISTS coordinates (
-        id int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        id int(11) PRIMARY KEY,
         name varchar(100) COLLATE utf8_unicode_ci NOT NULL,
-        coords varchar(999) NOT NULL,
+        coords varchar(8000) NOT NULL,
         description varchar(999) NOT NULL,
         centroid varchar(999) NULL,
         number_parking int(11)
         )";
         if (mysqli_query($con, $sql)) {
+            echo "Table created successfully";
+        	mysqli_select_db($con,$dbName);
+        } else {
+            echo "Error creating Table: " . mysqli_error($con);
+        }
+		
+		
+		$sql="CREATE TABLE `Availability` (
+		`Time` SMALLINT UNSIGNED NOT NULL,
+		`Region` SMALLINT NOT NULL,
+		`Value` FLOAT NOT NULL,
+		PRIMARY KEY (`Time`,`Region`)
+		)";
+		if (mysqli_query($con, $sql)) {
             echo "Table created successfully";
         	mysqli_select_db($con,$dbName);
         } else {
@@ -140,9 +174,16 @@ $headings = array('NAME', 'LONGITUDE', 'LATITUDE','COORDINATES');
 $headings_mapped = false;
 $data = array();
 foreach ($places_xml->Document->Folder[0]->Placemark as $place) {
+if ($place->MultiGeometry->Polygon->outerBoundaryIs->LinearRing->coordinates == NULL)
+	{
+	$temp=$place->MultiGeometry->MultiGeometry->Polygon->outerBoundaryIs->LinearRing->coordinates;
+	} else
+	{
+	$temp=$place->MultiGeometry->Polygon->outerBoundaryIs->LinearRing->coordinates;
+	}
   $row = array(
     $place->name,
-    $place->MultiGeometry->Polygon->outerBoundaryIs->LinearRing->coordinates,
+    $temp,
 	$place->description
   );
    
@@ -172,7 +213,8 @@ foreach ($places_xml->Document->Folder[0]->Placemark as $place) {
 
 $con->beginTransaction();
 foreach ($data as $row) {
-$con->exec("INSERT INTO `coordinates` (`name`,`coords`,`description`) VALUES ('$row[0]','$row[1]','$row[2]')");
+$con->exec("INSERT INTO `coordinates` (`id`,`name`,`coords`,`description`) VALUES ('$id','$row[0]','$row[1]','$row[2]')");
+$id+=1;
 }
 $con->commit();
 echo "New records created successfully";
