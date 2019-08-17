@@ -10,7 +10,8 @@
   <script>
 test();
 var array_temp;
-function test() {
+
+	function test() {
     
             xmlhttp = new XMLHttpRequest();
             xmlhttp.onreadystatechange = function() {
@@ -22,6 +23,7 @@ function test() {
        xmlhttp.send();
 	   
     }
+
     map = new OpenLayers.Map("mapdiv");
     map.addLayer(new OpenLayers.Layer.OSM());
 	
@@ -32,6 +34,7 @@ function test() {
        var colors = ["red", "green", "blue"];
             var context = {
                 getColor: function(feature) {
+				 
 				var region=1;
 				for (var i = 0, len = array_temp.length; i < len; i++) {
 					if (feature.data.name ==array_temp[i].name){
@@ -41,6 +44,7 @@ function test() {
 				
 						
                     return colors[region];
+				
                 },
                 
             };
@@ -51,7 +55,7 @@ function test() {
             var style = new OpenLayers.Style(template, {context: context});
 
 	
-
+setTimeout(function(){ 
     var kmllayer = new OpenLayers.Layer.Vector("KML", {
 			styleMap : new OpenLayers.StyleMap(style),
             strategies: [new OpenLayers.Strategy.Fixed()],
@@ -74,10 +78,9 @@ function test() {
 
     map.addLayer(kmllayer);
 	
-   setTimeout(function(){ 
+   
 
-        console.log(kmllayer.getFeatureByFid("population_data_per_block.1"));
-    }, 3000);  
+     
   
 	
     //Set start centrepoint and zoom
@@ -127,10 +130,20 @@ function test() {
     }
 	map.addControl(controls['selector']);
     controls['selector'].activate();
-	
+}, 3000); 
 
-
+/* setTimeout(function(){ 
+	for (var i = 0, len = array_temp.length; i < len; i++) {
+	console.log(kmllayer.getFeatureByFid(array_temp[i].name));
+	kmllayer.getFeatureByFid(array_temp[i].name).style;
+	}
 	
+    }, 4000);  
+setTimeout(function(){ 
+kmllayer.redraw();
+	
+    }, 6000);  
+*/
 	</script>
 	</head>
 <body >
