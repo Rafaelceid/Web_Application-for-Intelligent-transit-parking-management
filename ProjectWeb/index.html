@@ -13,30 +13,46 @@ test();
     map = new OpenLayers.Map("mapdiv");
     map.addLayer(new OpenLayers.Layer.OSM());
 	
-    style = new OpenLayers.Style({
-		//fill: new OpenLayers.Style.Fill({ color: '#ffffff' }),
-        fillColor: "#ffffff",
-		fillOpacity: 0.4,
-        strokeOpacity: 1,
-        strokeWidth: 3,
-        pointRadius: 6,
-		
-    });
+       console.log("hello");
+     //now you can use any property of your feature to identify the different colors
+     //I am using the ID property of your data just to demonstrate
+	 var renderer = OpenLayers.Util.getParameters(window.location.href).renderer;
+            renderer = (renderer) ? [renderer] : OpenLayers.Layer.Vector.prototype.renderers;
+       var colors = ["red", "green", "blue"];
+            var context = {
+                getColor: function(feature) {
+					if (feature.data.name =="population_data_per_block.12"){
+					var region = 2;
+					console.log("yes");
+					} else {
+                    var region = 0;
+					}
+                    return colors[region];
+                },
+                
+            };
+            var template = {
+                
+                fillColor: "${getColor}" // using context.getColor(feature)
+            };
+            var style = new OpenLayers.Style(template, {context: context});
 
 	
 
     var kmllayer = new OpenLayers.Layer.Vector("KML", {
+			styleMap : new OpenLayers.StyleMap(style),
             strategies: [new OpenLayers.Strategy.Fixed()],
             protocol: new OpenLayers.Protocol.HTTP({
                 url: "./map.kml",
 				
                 format: new OpenLayers.Format.KML({
 					
-                    extractStyles: true, 
+                    extractStyles: false, 
                     extractAttributes: true,
                     maxDepth: 2
                 })
             })
+			
         });
 		
 
@@ -113,18 +129,18 @@ var array_temp;
        xmlhttp.send();
 	   
     }
-setTimeout(function(){ 
+/* setTimeout(function(){ 
 	for (var i = 0, len = array_temp.length; i < len; i++) {
 	console.log(kmllayer.getFeatureByFid(array_temp[i].name));
-	kmllayer.getFeatureByFid(array_temp[i].name).style=style;
+	kmllayer.getFeatureByFid(array_temp[i].name).style;
 	}
 	
-    }, 3000);  
+    }, 4000);  
 setTimeout(function(){ 
 kmllayer.redraw();
 	
     }, 6000);  
-
+*/
 	</script>
 	</head>
 <body >
