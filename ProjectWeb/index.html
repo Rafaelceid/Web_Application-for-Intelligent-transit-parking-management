@@ -9,11 +9,22 @@
 
   <script>
 test();
-
+var array_temp;
+function test() {
+    
+            xmlhttp = new XMLHttpRequest();
+            xmlhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+			array_temp=JSON.parse(xmlhttp.response);
+            }
+        };
+       xmlhttp.open("GET","test.php",true);
+       xmlhttp.send();
+	   
+    }
     map = new OpenLayers.Map("mapdiv");
     map.addLayer(new OpenLayers.Layer.OSM());
 	
-       console.log("hello");
      //now you can use any property of your feature to identify the different colors
      //I am using the ID property of your data just to demonstrate
 	 var renderer = OpenLayers.Util.getParameters(window.location.href).renderer;
@@ -117,32 +128,9 @@ test();
 	map.addControl(controls['selector']);
     controls['selector'].activate();
 	
-var array_temp;
 
-	function test() {
-    
-            xmlhttp = new XMLHttpRequest();
-            xmlhttp.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
-			array_temp=JSON.parse(xmlhttp.response);
-            }
-        };
-       xmlhttp.open("GET","test.php",true);
-       xmlhttp.send();
-	   
-    }
-/* setTimeout(function(){ 
-	for (var i = 0, len = array_temp.length; i < len; i++) {
-	console.log(kmllayer.getFeatureByFid(array_temp[i].name));
-	kmllayer.getFeatureByFid(array_temp[i].name).style;
-	}
+
 	
-    }, 4000);  
-setTimeout(function(){ 
-kmllayer.redraw();
-	
-    }, 6000);  
-*/
 	</script>
 	</head>
 <body >
