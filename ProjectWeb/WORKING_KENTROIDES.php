@@ -1,8 +1,10 @@
  
  <?php
 
-include 'conecto_database.php';
 
+function updateCentroids(){
+	include 'geometry_sort.php';
+	include 'conecto_database.php';
 	$query = "SELECT coords FROM coordinates";
 	$result = mysqli_query($conn,$query);
 	
@@ -28,9 +30,7 @@ $temp = explode (" ",$value);
 
 array_push($temp_array,array_chunk($temp,1));
 }
-echo '<pre>';
-	print_r($temp_array);
-	echo '<pre>';
+
 foreach ($temp_array as &$value)
 {
 foreach ($value as &$coords)
@@ -38,7 +38,7 @@ foreach ($value as &$coords)
 $coords=explode (",",$coords[0]); 
 }
 }
-//error_reporting(E_ERROR | E_PARSE);
+
 
 $centroids=array();
  foreach ($temp_array as $testi)
@@ -47,6 +47,50 @@ $centroids=array();
  $geometry->rings = array($testi);
  array_push($centroids,getCentroidOfPolygon($geometry));
  }
+ 
+$dbHost = 'localhost';
+$dbUser = 'root';
+$dbPass = '';
+$dbName = 'map_data';
+$maxRuntime = 8; // less then your max script execution limit
+
+try {
+    $con = new PDO("mysql:host=$dbHost;dbname=$dbName", $dbUser, $dbPass);
+    // set the PDO error mode to exception
+    $con->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+ 
+// $sql=null;
+$con->beginTransaction();
+for ($i = 0; $i < count($centroids); $i++) {
+    $c = $centroids[$i][0]. "," . $centroids[$i][1];
+    $temp=distance(22.944420, 40.640064, $centroids[$i][0], $centroids[$i][1], 'K');
+$con->exec("UPDATE coordinates SET `centroid`='$c' , `region`='$temp'  WHERE id='$i';");
+    
+
+}
+$con->commit();
+}
+catch(PDOException $e)
+    {
+    // roll back the transaction if something failed
+    $con->rollback();
+    echo "Error: " . $e->getMessage();
+    }
+}
+	
+/*
+	if ($conn->multi_query($sql) === TRUE) {
+	while (mysqli_next_result($conn));
+        echo "Centroids updated successfully";
+    } else {
+        echo "Error updating Centroids: " . $conn->error;
+    }
+    echo '<pre>';
+ 
+ }
+ 
+ */
  function getAreaOfPolygon($geometry) {
     $area = 0;
     for ($ri=0, $rl=sizeof($geometry->rings); $ri<$rl; $ri++) {
@@ -100,19 +144,6 @@ $centroids=array();
 
 }
 
-$sql=null;
-for ($i = 0; $i < count($centroids); $i++) {
-    $c = $centroids[$i][0]. "," . $centroids[$i][1];
-    $sql .= "UPDATE coordinates SET centroid='$c'  WHERE id='$i';";
 
-    
 
-}
-print_r($sql);
-if ($conn->multi_query($sql) === TRUE) {
-        echo "Record updated successfully";
-    } else {
-        echo "Error updating record: " . $conn->error;
-    }
-    echo '<pre>';
 ?>

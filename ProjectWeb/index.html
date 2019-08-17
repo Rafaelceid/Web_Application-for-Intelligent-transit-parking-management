@@ -1,29 +1,54 @@
 <html>
-  <head><title>OpenLayers KML Example</title></head>
-  <body>
-  <div>
-</div>
-  <div id="mapdiv"></div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/openlayers/2.11/lib/OpenLayers.js"></script>           
+  <head><title>OpenLayers KML Example</title>
   
+  <div id="mapdiv"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/openlayers/2.11/lib/OpenLayers.js"></script>      
+  <script src="http://code.jquery.com/jquery-3.1.1.min.js"></script>
+  <link rel="stylesheet" href="https://openlayers.org/en/v5.3.0/css/ol.css" type="text/css">
+  <script src="https://openlayers.org/en/v5.3.0/build/ol.js" type="text/javascript"></script>
+
   <script>
+test();
+
     map = new OpenLayers.Map("mapdiv");
     map.addLayer(new OpenLayers.Layer.OSM());
-       
+	
+    style = new OpenLayers.Style({
+        fillColor: "#ffffff",
+		fillOpacity: 0.4,
+        strokeOpacity: 1,
+        strokeWidth: 3,
+        pointRadius: 6,
+    });
+
+	
+
     var kmllayer = new OpenLayers.Layer.Vector("KML", {
             strategies: [new OpenLayers.Strategy.Fixed()],
             protocol: new OpenLayers.Protocol.HTTP({
                 url: "./map.kml",
+				
                 format: new OpenLayers.Format.KML({
+					
                     extractStyles: true, 
                     extractAttributes: true,
                     maxDepth: 2
                 })
             })
         });
-        
+		
+
+
+
+
     map.addLayer(kmllayer);
-    
+	
+   setTimeout(function(){ 
+
+        console.log(kmllayer.getFeatureByFid("population_data_per_block.1"));
+    }, 3000);  
+  
+	
     //Set start centrepoint and zoom
     //TODO: Is it possible to just zoom to extents of KML objects instead?
     
@@ -39,7 +64,9 @@
     var controls = {
       selector: new OpenLayers.Control.SelectFeature(kmllayer, { onSelect: createPopup, onUnselect: destroyPopup })
     };
-
+	
+	
+	
     function createPopup(feature) {
       feature.popup = new OpenLayers.Popup.FramedCloud("pop",
           feature.geometry.getBounds().getCenterLonLat(),
@@ -70,30 +97,42 @@
 	map.addControl(controls['selector']);
     controls['selector'].activate();
 	
-	
-	var lonLat2 = new OpenLayers.LonLat( 23.9423862304 , 40.6334858436 )
-          .transform(
-            new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
-            map.getProjectionObject() // to Spherical Mercator Projection
-          );
-	
-	alert(distanceBetweenPoints(lonLat,lonLat2));
+var array_temp;
 
-	function distanceBetweenPoints(latlng1, latlng2){
-        var point1 = new OpenLayers.Geometry.Point(latlng1.lon, latlng1.lat);
-        var point2 = new OpenLayers.Geometry.Point(latlng2.lon, latlng2.lat);       
-        return point1.distanceTo(point2);
-    }
-	
-	var markers = new OpenLayers.Layer.Markers( "Markers" );
-    map.addLayer(markers);
+	function test() {
     
-    markers.addMarker(new OpenLayers.Marker(lonLat));
+            xmlhttp = new XMLHttpRequest();
+            xmlhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+			array_temp=JSON.parse(xmlhttp.response);
+            }
+        };
+       xmlhttp.open("GET","test.php",true);
+       xmlhttp.send();
+	   
+    }
+setTimeout(function(){ 
+	for (var i = 0, len = array_temp.length; i < len; i++) {
+	console.log(kmllayer.getFeatureByFid(array_temp[i].name));
+	kmllayer.getFeatureByFid(array_temp[i].name).style=style;
+	}
 	
+    }, 3000);  
+setTimeout(function(){ 
+kmllayer.redraw();
 	
-  </script>
-  
+    }, 6000);  
+
+	</script>
+	</head>
+<body >
+<script>
+
+
+
+
 <?php
+include 'WORKING_KENTROIDES.php';
 error_reporting(E_ERROR | E_PARSE);
 
 // your config
@@ -110,43 +149,50 @@ $con = mysqli_connect($dbHost, $dbUser, $dbPass) OR die('connecting to host: '.$
         $db_selected = mysqli_select_db($con,$dbName) OR $sql = "CREATE DATABASE map_data";
         if (!$db_selected){
         if (mysqli_query($con, $sql)) {
-            echo "Database created successfully";
+            console.log( "Database created successfully");
         	mysqli_select_db($con,$dbName);
         } else {
-            echo "Error creating database: " . mysqli_error($con);
+            console.log( "Error creating database: " . mysqli_error($con));
         }
         }
 		$sql="DROP TABLE IF EXISTS `coordinates`";
 		mysqli_query($con, $sql);
 
-        $sql = "CREATE TABLE IF NOT EXISTS coordinates (
+        $sql = "CREATE TABLE coordinates (
         id int(11) PRIMARY KEY,
         name varchar(100) COLLATE utf8_unicode_ci NOT NULL,
         coords varchar(8000) NOT NULL,
         description varchar(999) NOT NULL,
         centroid varchar(999) NULL,
-        number_parking int(11)
-        )";
+        number_parking int(11),
+		region float(5)
+        )ENGINE=INNODB CHARACTER SET ascii COLLATE ascii_general_ci";
         if (mysqli_query($con, $sql)) {
-            echo "Table created successfully";
+            console.log( "Coordinates table created successfully");
         	mysqli_select_db($con,$dbName);
         } else {
-            echo "Error creating Table: " . mysqli_error($con);
+            console.log( "Error creating Table: " . mysqli_error($con));
         }
 		
 		
-		$sql="CREATE TABLE `Availability` (
+		$sql="CREATE TABLE IF NOT EXISTS `Availability` (
 		`Time` SMALLINT UNSIGNED NOT NULL,
-		`Region` SMALLINT NOT NULL,
+		`Region` SMALLINT,
 		`Value` FLOAT NOT NULL,
 		PRIMARY KEY (`Time`,`Region`)
-		)";
+		)ENGINE=INNODB CHARACTER SET ascii COLLATE ascii_general_ci";
 		if (mysqli_query($con, $sql)) {
-            echo "Table created successfully";
+            console.log("Availability table created succesfully");
         	mysqli_select_db($con,$dbName);
         } else {
-            echo "Error creating Table: " . mysqli_error($con);
+            console.log( "Error creating Table: " . mysqli_error($con));
         }
+		
+		
+		
+		
+			
+		
 
 try {
     $con = new PDO("mysql:host=$dbHost;dbname=$dbName", $dbUser, $dbPass);
@@ -217,16 +263,26 @@ $con->exec("INSERT INTO `coordinates` (`id`,`name`,`coords`,`description`) VALUE
 $id+=1;
 }
 $con->commit();
-echo "New records created successfully";
+console.log("New records created successfully");
 }
 catch(PDOException $e)
     {
     // roll back the transaction if something failed
     $con->rollback();
-    echo "Error: " . $e->getMessage();
+    console.log( "Error: " . $e->getMessage());
     }
+updateCentroids();
 $con = null;
+
+
 ?>
+
+
+
+
+
+
+</script>
 
 </body>
 

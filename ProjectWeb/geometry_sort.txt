@@ -1,3 +1,4 @@
+<?php>
 map.addControl(controls['selector']);
     controls['selector'].activate();
 	
