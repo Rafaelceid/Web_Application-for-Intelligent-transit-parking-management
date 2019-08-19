@@ -10,8 +10,10 @@
 	if ($conn->connect_error) {
 		 die("Connection failed: " . $conn->connect_error);
 	} 
+	$query = "DROP TABLE IF EXISTS new_table";
+	$result =$conn->query($query);
 	$query = "CREATE TABLE new_table(
-              SELECT `name`,`Time`,`1` FROM coordinates,tbl_info WHERE region=1 AND Time=2
+              SELECT `name`,`description`,`Time`,`1` FROM coordinates,tbl_info WHERE `Region`=1 AND `Time`=2
 			  )";
 	$result =$conn->query($query);
 

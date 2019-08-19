@@ -10,13 +10,15 @@
   <script>
 test();
 var array_temp;
-
+var population_array = new Array();
+var name_id_array = new Array();;
 	function test() {
     
             xmlhttp = new XMLHttpRequest();
             xmlhttp.onreadystatechange = function() {
             if (this.readyState == 4 && this.status == 200) {
 			array_temp=JSON.parse(xmlhttp.response);
+			console.log(array_temp);
             }
         };
        xmlhttp.open("GET","test.php",true);
@@ -24,9 +26,21 @@ var array_temp;
 	   
     }
 
+setTimeout(function(){ 
+for (var i = 0, len = array_temp.length; i < len; i++) {
+				if (array_temp[i].description.search('Population&lt;/span&gt;:&lt;/strong&gt; &lt;span class="atr-value"&gt;') != -1){
+				population_array.push(array_temp[i].description.split('Population&lt;/span&gt;:&lt;/strong&gt; &lt;span class="atr-value"&gt;')[1].split('&lt;')[0]);
+				name_id_array.push(array_temp[i].name);
+				}
+				}
+
+updateDatabasePop(population_array,name_id_array);
+},5000);
+
     map = new OpenLayers.Map("mapdiv");
     map.addLayer(new OpenLayers.Layer.OSM());
-	
+	var population_array;
+	var name_id_array;
      //now you can use any property of your feature to identify the different colors
      //I am using the ID property of your data just to demonstrate
 	 var renderer = OpenLayers.Util.getParameters(window.location.href).renderer;
@@ -34,9 +48,10 @@ var array_temp;
        var colors = ["red", "green", "blue"];
             var context = {
                 getColor: function(feature) {
-				 
+				
 				var region=1;
 				for (var i = 0, len = array_temp.length; i < len; i++) {
+				
 					if (feature.data.name ==array_temp[i].name){
 					var region = 2;
 					} 
@@ -54,7 +69,6 @@ var array_temp;
             };
             var style = new OpenLayers.Style(template, {context: context});
 
-	
 setTimeout(function(){ 
     var kmllayer = new OpenLayers.Layer.Vector("KML", {
 			styleMap : new OpenLayers.StyleMap(style),
@@ -130,20 +144,27 @@ setTimeout(function(){
     }
 	map.addControl(controls['selector']);
     controls['selector'].activate();
-}, 3000); 
+}, 5000); 
+ var request;	
+function updateDatabasePop(q,id) {
+    if (q == "") {
+        console.log("does not exist");
+        return;
+    } else { 
+           $.ajax({
+			url: "updatePop.php",
+			type:"post",
+			data: {
+            q:JSON.stringify(q),id:JSON.stringify(id)
+			},
+        success: function(response){ 
+			console.log(response);		
+        },
+        error:function(xhr, ajaxOptions, thrownError){alert(xhr.responseText); ShowMessage("??? ?? ?????? ??????? ????","fail");}
+    });
+}
+}
 
-/* setTimeout(function(){ 
-	for (var i = 0, len = array_temp.length; i < len; i++) {
-	console.log(kmllayer.getFeatureByFid(array_temp[i].name));
-	kmllayer.getFeatureByFid(array_temp[i].name).style;
-	}
-	
-    }, 4000);  
-setTimeout(function(){ 
-kmllayer.redraw();
-	
-    }, 6000);  
-*/
 	</script>
 	</head>
 <body >
@@ -186,7 +207,8 @@ $con = mysqli_connect($dbHost, $dbUser, $dbPass) OR die('connecting to host: '.$
         description varchar(999) NOT NULL,
         centroid varchar(999) NULL,
         number_parking int(11),
-		region float(5)
+		region float(5),
+		population int(3)
         )ENGINE=INNODB CHARACTER SET ascii COLLATE ascii_general_ci";
         if (mysqli_query($con, $sql)) {
             console.log( "Coordinates table created successfully");
@@ -280,6 +302,7 @@ if ($place->MultiGeometry->Polygon->outerBoundaryIs->LinearRing->coordinates == 
 
 $con->beginTransaction();
 foreach ($data as $row) {
+
 $con->exec("INSERT INTO `coordinates` (`id`,`name`,`coords`,`description`) VALUES ('$id','$row[0]','$row[1]','$row[2]')");
 $id+=1;
 }
