@@ -1,33 +1,217 @@
 <html>
-  <head><title>OpenLayers KML Example</title></head>
-  <body>
-  <div>
-</div>
+  <head><title>OpenLayers KML Example</title>
+
+<button onclick="sim()">Click me</button>
+<iframe name="votar" style="display:none;"></iframe>
+<form name='selection' target='votar'>
+    <select name="cars" id='selection'  target='votar'>
+        <option value="0">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+        <option value="13">13</option>
+        <option value="14">14</option>
+        <option value="15">15</option>
+        <option value="16">16</option>
+        <option value="17">17</option>
+        <option value="18">18</option>
+        <option value="19">19</option>
+        <option value="20">20</option>
+        <option value="21">21</option>
+        <option value="22">22</option>
+        <option value="23">23</option>
+    </select>
+    <input type="submit" onclick="sim(document.getElementById('selection').value)" target='votar'>
+</form>
+
   <div id="mapdiv"></div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/openlayers/2.11/lib/OpenLayers.js"></script>           
-  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/openlayers/2.11/lib/OpenLayers.js"></script>      
+  <script src="http://code.jquery.com/jquery-3.1.1.min.js"></script>
+  <link rel="stylesheet" href="https://openlayers.org/en/v5.3.0/css/ol.css" type="text/css">
+  <script src="https://openlayers.org/en/v5.3.0/build/ol.js" type="text/javascript"></script>
+
   <script>
+
+var x=0;
+var simulate = false;
+
+    function sim(x) {
+        simulate = true;
+        start(simulate,x);
+    }
+
+start(simulate,x);    
+function start(simulate,x)
+{
+  //  console.log("test");
+    var kampilesResponce = new Array();
+    var array_temp = new Array();
+    var population_array = new Array();
+    var name_id_array = new Array();
+            
+    if (simulate == true) {
+            xmlhttp = new XMLHttpRequest();
+            xmlhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+			array_temp=JSON.parse(xmlhttp.response);
+			for (var i = 0, len = array_temp.length; i < len; i++) {
+                    if (array_temp[i].description.search('Population&lt;/span&gt;:&lt;/strong&gt; &lt;span class="atr-value"&gt;') != -1) {
+                        population_array.push(array_temp[i].description.split('Population&lt;/span&gt;:&lt;/strong&gt; &lt;span class="atr-value"&gt;')[1].split('&lt;')[0]);
+                        name_id_array.push(array_temp[i].name);
+                    } else {
+                        population_array.push(null);
+                        name_id_array.push(array_temp[i].name);
+                    }
+                }
+
+                updateDatabasePop(population_array, name_id_array,array_temp,x);
+                
+                
+            }
+        };
+       xmlhttp.open("GET","test.php",true);
+       xmlhttp.send();
+} else {
+    drawMap();
+}
+}
+
+    
+    function pogiatisma(x) {
+            if (x == "") {
+                console.log("give time");
+                return;
+            } else {
+                $.ajax({
+                    url: "kampiles.php",
+                    type: "post",
+                    data: {
+                        x: JSON.stringify(x)
+                    },
+                    success: function (response) {
+                         kampilesResponce = JSON.parse(response);
+                         drawMap(kampilesResponce);
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) { alert(xhr.responseText); ShowMessage("??? ?? ?????? ??????? ????", "fail"); }
+                });
+            }
+        }
+    function testings(np,kz,x,flag) {
+        if (np>0 || kz>0 || kz<1){
+        $.ajax({
+            type: "POST",
+            url: "select.php",
+            cache: false,
+            data:{ np:JSON.stringify(np), kz: JSON.stringify(kz), x: JSON.stringify(x), flag: JSON.stringify(flag) },
+            success: function (result) {
+                drawMap(JSON.parse(result));
+            }
+        });
+        }
+    }
+
+
+function drawMap(kampiles){
+if (simulate==false){
     map = new OpenLayers.Map("mapdiv");
+}
+
     map.addLayer(new OpenLayers.Layer.OSM());
-       
+	
+     //now you can use any property of your feature to identify the different colors
+     //I am using the ID property of your data just to demonstrate
+    if (simulate == true) {
+	 var renderer = OpenLayers.Util.getParameters(window.location.href).renderer;
+            renderer = (renderer) ? [renderer] : OpenLayers.Layer.Vector.prototype.renderers;
+       var colors = ["green", "yellow", "red"];
+            var context = {
+                getColor: function(feature) {
+				for (var i = 0, len = kampiles.length; i < len; i++) {
+                
+				if (feature.data.name == kampiles[i]['name']) {
+                    
+                    if (kampiles[i]['percentage']<=0.59){
+                        
+                        var color=0;
+                    } else if (kampiles[i]['percentage']<=0.84){
+                        
+                        var color=1;
+                    } else {
+                        var color=2;
+                    }
+					
+					}
+                }
+                
+                    return colors[color];
+				
+                },
+                
+            };
+            var template = {
+                
+                fillColor: "${getColor}" // using context.getColor(feature)
+            };
+            var style = new OpenLayers.Style(template, {context: context});
+
+
+    console.log("polixromo")
     var kmllayer = new OpenLayers.Layer.Vector("KML", {
+			styleMap : new OpenLayers.StyleMap(style),
             strategies: [new OpenLayers.Strategy.Fixed()],
             protocol: new OpenLayers.Protocol.HTTP({
                 url: "./map.kml",
+				
                 format: new OpenLayers.Format.KML({
-                    extractStyles: true, 
+					
+                    extractStyles: false, 
                     extractAttributes: true,
                     maxDepth: 2
                 })
             })
+			
         });
-        
-    map.addLayer(kmllayer);
+        map.addLayer(kmllayer);
+}
+    if (simulate == false) {
+        console.log("gkrizo")
+        var kmllayer = new OpenLayers.Layer.Vector("KML", {
+            strategies: [new OpenLayers.Strategy.Fixed()],
+            protocol: new OpenLayers.Protocol.HTTP({
+                url: "./map.kml",
+
+                format: new OpenLayers.Format.KML({
+
+                    extractStyles: true,
+                    extractAttributes: true,
+                    maxDepth: 2
+                })
+            })
+
+        });
+        map.addLayer(kmllayer);
+    }
+
     
+	
+   
+
+     
+  
+	
     //Set start centrepoint and zoom
     //TODO: Is it possible to just zoom to extents of KML objects instead?
     
-    var lonLat = new OpenLayers.LonLat( 22.920227 , 40.736851 )
+    var lonLat = new OpenLayers.LonLat( 22.944420 , 40.640064 )
           .transform(
             new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
             map.getProjectionObject() // to Spherical Mercator Projection
@@ -39,12 +223,24 @@
     var controls = {
       selector: new OpenLayers.Control.SelectFeature(kmllayer, { onSelect: createPopup, onUnselect: destroyPopup })
     };
-
+	
+	
+	
     function createPopup(feature) {
       feature.popup = new OpenLayers.Popup.FramedCloud("pop",
           feature.geometry.getBounds().getCenterLonLat(),
           null,
-          '<div class="markerContent">'+feature.attributes.description+'</div>',
+        '<div class="markerContent">'+feature.attributes.description
+        + '<iframe name="votar" style="display:none;"></iframe>'
+         +'<form id="form" name="form" target="votar">'
+          +'Αρθμός Θέσεων Στάθμευσης:<br>'
+            +'<input type="number" min="0" name="number_p" value="" id="np"><br>'
+             + 'Καμπύλη Ζήτησης:<br>'
+             + '<input type="submit" value="Submit" onclick=testings(document.getElementById("np").value,document.getElementById("kz").value,document.getElementById("name").value,0) target="votar"/><br>'
+              +  '<input type="number" step="0.01" name="kampili" id="kz" min="0" max="1" value=""><br><br>'
+			   +	'<input type="hidden" id="name" value="'+ feature.attributes.name + '"' + 'name="extra">'
+               +       '<input type="submit" value="Submit" onclick=testings(document.getElementById("np").value,document.getElementById("kz").value,document.getElementById("name").value,1) target="votar"/>'
+				 +    '</form>',
           null,
           true,
           function() { controls['selector'].unselectAll(); }
@@ -53,16 +249,51 @@
       map.addPopup(feature.popup);
     }
 
+
+   
+            
+       
     function destroyPopup(feature) {
       feature.popup.destroy();
       feature.popup = null;
     }
-    
-    map.addControl(controls['selector']);
+	map.addControl(controls['selector']);
     controls['selector'].activate();
-  </script>
-  
-  <?php
+}
+ var request;	
+function updateDatabasePop(q,id,all,x) {
+    if (q == "") {
+        console.log("does not exist");
+        return;
+    } else { 
+           $.ajax({
+			url: "updatePop.php",
+			type:"post",
+			data: {
+            q:JSON.stringify(q),id:JSON.stringify(id),all:JSON.stringify(all)
+			},
+        success: function(response){ 
+            pogiatisma(x);		
+        },
+        error:function(xhr, ajaxOptions, thrownError){alert(xhr.responseText); ShowMessage("??? ?? ?????? ??????? ????","fail");}
+    });
+}
+}
+
+   
+    
+
+	</script>
+	</head>
+<body >
+<script>
+
+
+
+
+<?php
+include 'WORKING_KENTROIDES.php';
+error_reporting(E_ERROR | E_PARSE);
 
 // your config
 $dbHost = 'localhost';
@@ -70,7 +301,7 @@ $dbUser = 'root';
 $dbPass = '';
 $dbName = 'map_data';
 $maxRuntime = 8; // less then your max script execution limit
-
+$id=0;
 
 $deadline = time()+$maxRuntime; 
 
@@ -78,25 +309,51 @@ $con = mysqli_connect($dbHost, $dbUser, $dbPass) OR die('connecting to host: '.$
         $db_selected = mysqli_select_db($con,$dbName) OR $sql = "CREATE DATABASE map_data";
         if (!$db_selected){
         if (mysqli_query($con, $sql)) {
-            echo "Database created successfully";
+            console.log( "Database created successfully");
         	mysqli_select_db($con,$dbName);
         } else {
-            echo "Error creating database: " . mysqli_error($con);
+            console.log( "Error creating database: " . mysqli_error($con));
         }
         }
+		$sql="DROP TABLE IF EXISTS `coordinates`";
+		mysqli_query($con, $sql);
 
-        $sql = "CREATE TABLE IF NOT EXISTS coordinates (
-        id int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        $sql = "CREATE TABLE coordinates (
+        id int(11) PRIMARY KEY,
         name varchar(100) COLLATE utf8_unicode_ci NOT NULL,
-        coords varchar(999) NOT NULL,
-        description varchar(999) NOT NULL
-        )";
+        coords varchar(8000) NOT NULL,
+        description varchar(999) NOT NULL,
+        centroid varchar(999) NULL,
+        number_parking int(11),
+		region float(5),
+		population int(3)
+        )ENGINE=INNODB CHARACTER SET ascii COLLATE ascii_general_ci";
         if (mysqli_query($con, $sql)) {
-            echo "Table created successfully";
+            console.log( "Coordinates table created successfully");
         	mysqli_select_db($con,$dbName);
         } else {
-            echo "Error creating Table: " . mysqli_error($con);
+            console.log( "Error creating Table: " . mysqli_error($con));
         }
+		
+		
+		$sql="CREATE TABLE IF NOT EXISTS `Availability` (
+		`Time` SMALLINT UNSIGNED NOT NULL,
+		`Region` SMALLINT,
+		`Value` FLOAT NOT NULL,
+		PRIMARY KEY (`Time`,`Region`)
+		)ENGINE=INNODB CHARACTER SET ascii COLLATE ascii_general_ci";
+		if (mysqli_query($con, $sql)) {
+            console.log("Availability table created succesfully");
+        	mysqli_select_db($con,$dbName);
+        } else {
+            console.log( "Error creating Table: " . mysqli_error($con));
+        }
+		
+		
+		
+		
+			
+		
 
 try {
     $con = new PDO("mysql:host=$dbHost;dbname=$dbName", $dbUser, $dbPass);
@@ -124,11 +381,19 @@ $headings = array('NAME', 'LONGITUDE', 'LATITUDE','COORDINATES');
 $headings_mapped = false;
 $data = array();
 foreach ($places_xml->Document->Folder[0]->Placemark as $place) {
+if ($place->MultiGeometry->Polygon->outerBoundaryIs->LinearRing->coordinates == NULL)
+	{
+	$temp=$place->MultiGeometry->MultiGeometry->Polygon->outerBoundaryIs->LinearRing->coordinates;
+	} else
+	{
+	$temp=$place->MultiGeometry->Polygon->outerBoundaryIs->LinearRing->coordinates;
+	}
   $row = array(
     $place->name,
-    $place->MultiGeometry->Polygon->outerBoundaryIs->LinearRing->coordinates,
+    $temp,
 	$place->description
   );
+   
   
 
   $desc_bits = explode('</tr>', $place->description);
@@ -155,21 +420,34 @@ foreach ($places_xml->Document->Folder[0]->Placemark as $place) {
 
 $con->beginTransaction();
 foreach ($data as $row) {
-$con->exec("INSERT INTO `coordinates` (`name`,`coords`,`description`) VALUES ('$row[0]','$row[1]','$row[2]')");
+
+$con->exec("INSERT INTO `coordinates` (`id`,`name`,`coords`,`description`) VALUES ('$id','$row[0]','$row[1]','$row[2]')");
+$id+=1;
 }
 $con->commit();
-echo "New records created successfully";
+console.log("New records created successfully");
 }
 catch(PDOException $e)
     {
     // roll back the transaction if something failed
     $con->rollback();
-    echo "Error: " . $e->getMessage();
+    console.log( "Error: " . $e->getMessage());
     }
+    
+    updateCentroids();
+  
 $con = null;
+
+
 ?>
 
-  
+
+
+
+
+
+</script>
+
 </body>
 
 </html>
