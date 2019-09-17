@@ -1,0 +1,220 @@
+<html>
+
+<head>
+    <title>OpenLayers KML Example</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+   
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/openlayers/2.11/lib/OpenLayers.js"></script>
+    <script src="http://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <link rel="stylesheet" href="https://openlayers.org/en/v5.3.0/css/ol.css" type="text/css">
+    <script src="https://openlayers.org/en/v5.3.0/build/ol.js" type="text/javascript"></script>
+   
+   
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    
+ 
+
+       
+
+
+
+   
+    <div id="mapdiv"></div>
+    
+
+
+
+    <script>
+      var flag=0;
+    var x = 0;
+         x = <?php
+            if (isset($_POST['submit'])) {
+                echo $_POST['hour'];
+            } ?> 
+        pogiatisma(x);
+        function pogiatisma(x) {
+            if (x <0 || x>24) {
+                alert("wrong time");
+                return;
+            } else {
+                $.ajax({
+                    url: "kampiles.php",
+                    type: "post",
+                    data: {
+                        x: JSON.stringify(x)
+                    },
+                    success: function (response) {
+                        kampilesResponce = JSON.parse(response);
+                        drawMap(kampilesResponce);
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) { alert(xhr.responseText); ShowMessage("??? ?? ?????? ??????? ????", "fail"); }
+                });
+            }
+        }
+        
+
+
+        function drawMap(kampiles) {
+            if (flag==0){
+                map = new OpenLayers.Map("mapdiv");
+                flag+=1;
+            }
+                map.addLayer(new OpenLayers.Layer.OSM());
+
+            //now you can use any property of your feature to identify the different colors
+            //I am using the ID property of your data just to demonstrate
+          
+                var renderer = OpenLayers.Util.getParameters(window.location.href).renderer;
+                renderer = (renderer) ? [renderer] : OpenLayers.Layer.Vector.prototype.renderers;
+                var colors = ["green", "yellow", "red"];
+                var context = {
+                    getColor: function (feature) {
+                        for (var i = 0, len = kampiles.length; i < len; i++) {
+
+                            if (feature.data.name == kampiles[i]['name']) {
+
+                                if (kampiles[i]['percentage'] <= 0.59) {
+
+                                    var color = 0;
+                                } else if (kampiles[i]['percentage'] <= 0.84) {
+
+                                    var color = 1;
+                                } else {
+                                    var color = 2;
+                                }
+
+                            }
+                        }
+
+                        return colors[color];
+
+                    },
+
+                };
+                var template = {
+
+                    fillColor: "${getColor}" // using context.getColor(feature)
+                };
+                var style = new OpenLayers.Style(template, { context: context });
+
+
+                console.log("polixromo")
+                var kmllayer = new OpenLayers.Layer.Vector("KML", {
+                    styleMap: new OpenLayers.StyleMap(style),
+                    strategies: [new OpenLayers.Strategy.Fixed()],
+                    protocol: new OpenLayers.Protocol.HTTP({
+                        url: "./map.kml",
+
+                        format: new OpenLayers.Format.KML({
+
+                            extractStyles: false,
+                            extractAttributes: true,
+                            maxDepth: 2
+                        })
+                    })
+
+                });
+                map.addLayer(kmllayer);
+            
+           
+            //Set start centrepoint and zoom
+            //TODO: Is it possible to just zoom to extents of KML objects instead?
+
+            var lonLat = new OpenLayers.LonLat(22.944420, 40.640064)
+                .transform(
+                    new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
+                    map.getProjectionObject() // to Spherical Mercator Projection
+                );
+            var zoom = 14;
+            map.setCenter(lonLat, zoom);
+
+        
+        
+            //Add a selector control to the kmllayer with popup functions
+            var controls = {
+                selector: new OpenLayers.Control.SelectFeature(kmllayer, { onSelect: createPopup, onUnselect: destroyPopup })
+            };
+
+
+
+
+              function createPopup(feature) {
+                feature.popup = new OpenLayers.Popup.FramedCloud("pop",
+                    feature.geometry.getBounds().getCenterLonLat(),
+                    null,
+                    '<div class="markerContent">' 
+                    + '<iframe name="votar" style="display:none;"></iframe>'
+                    + '<form id="form" name="form" target="votar">'
+                    + 'Ώρα άφιξης:<br>'
+                    + '<input type="number" min="0" max="24" name="hour" value="" id="hour" require><br>'
+                    + 'Είμαι διατεθιμένος να περπατίσω:<br>'
+                    + '<input type="number" name="distance" id="distance" min="0" value="" require><br><br>'
+                    + '<input type="hidden" id="name" value="' + feature.attributes.name + '"' + 'name="extra">'
+                    + '<input type="submit" value="Submit" onclick=calculate(document.getElementById("name").value,document.getElementById("distance").value,document.getElementById("hour").value) target="votar"/>'
+                    + '</form>',
+                   
+                    null,
+                    true,
+                    function () { controls['selector'].unselectAll(); }
+                );
+                //feature.popup.closeOnMove = true;
+                map.addPopup(feature.popup);
+    }
+
+ 
+
+   
+
+            function destroyPopup(feature) {
+                feature.popup.destroy();
+                feature.popup = null;
+            }
+            map.addControl(controls['selector']);
+            controls['selector'].activate();
+
+            
+
+        }
+    function calculate(name, distance, hour) {
+
+        $.ajax({
+            url: "calculate_near.php",
+            type: "post",
+            data: {
+                id: JSON.stringify(name),
+                dist: JSON.stringify(distance),
+                hour: JSON.stringify(hour)
+            },
+            success: function (response) {
+                pogiatisma(hour);
+                console.log(response);
+            },
+            error: function (xhr, ajaxOptions, thrownError) { alert(xhr.responseText); ShowMessage("??? ?? ?????? ??????? ????", "fail"); }
+        })
+
+
+    }
+
+    </script>
+</head>
+
+<body>
+  
+
+<script>
+    $(document).ready(function () {
+        $("#myBtn").click(function () {
+            var number = document.getElementById("number").value;  
+            pogiatisma(number);
+        });
+    });
+</script>
+
+
+</body>
+
+</html>

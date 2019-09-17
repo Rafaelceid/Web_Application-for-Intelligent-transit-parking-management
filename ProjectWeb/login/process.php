@@ -7,6 +7,9 @@ $password = $_POST['password'];
 $username = stripcslashes($username);
 $password = stripcslashes($password);
 
+if ($username==null || $password==null){
+
+}
 
 $username = mysqli_real_escape_string($conn,$username);
 $password = mysqli_real_escape_string($conn, $password);
@@ -21,7 +24,10 @@ if ($row['username'] == $username && $row['password'] == $password)
 	}
 else
 	{
- 		echo "failed";
+			echo "<script>
+		alert('Wrong credentials');
+		window.location.href='http://localhost/Rousoi/ProjectWeb/login/';
+			</script>";
 	}
 	
 ?>

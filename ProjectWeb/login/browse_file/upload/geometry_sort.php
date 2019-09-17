@@ -7,7 +7,7 @@ function distance($lat1, $lon1, $lat2, $lon2) {
   $dist = acos($dist);
   $dist = rad2deg($dist);
   $miles = $dist * 60 * 1.1515;
-  $unit = strtoupper($unit);
+
 
   $km=$miles * 1.609344;
   if ($km <= 2) {
