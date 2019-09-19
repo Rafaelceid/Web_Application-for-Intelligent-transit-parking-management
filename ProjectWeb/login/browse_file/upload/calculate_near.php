@@ -28,6 +28,7 @@ foreach ($all_centroids as $temp) {
     }
     
 }
+$temparray = array();
 foreach ($match as $temp){
     
 $query = "SELECT parking,centroid,nt.name FROM new_table AS nt
@@ -40,14 +41,16 @@ $row = mysqli_fetch_array($test, MYSQLI_ASSOC);
 $temp1 = explode(",", $row['centroid']);
 
 
-$temparray = array();
+
 for ($i=0;$i<=$row['parking'];$i++){
-    array_push($temparray,generateRandomPoint(array($temp1[0],$temp1[1]), 0.0310686));
+    $res= generateRandomPoint(array($temp1[0], $temp1[1]), 0.0310686);
+    print_r($res);
+    $sistarisma=array("accuracy"=>5);
+    array_push($temparray,$sistarisma);
 }
-$temp_array = array('name' => $temp, 'coords'=>$temparray);
-array_push($result,$temp_array);
+
 }
-print_r($result);
+//print_r($temparray);
 
 function distance($lat1, $lon1, $lat2, $lon2) {
 
