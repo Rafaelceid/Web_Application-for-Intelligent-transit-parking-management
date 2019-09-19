@@ -41,7 +41,7 @@ function generateRandomPoint($centre, $radius)
     $lng_rads = atan2($x3, $y3);
     $lat_rads = asin($z3);
 
-    return array_map('rad2deg', array("lattitude"=>$lat_rads, "longitude" => $lng_rads));
+    return array_map('rad2deg', array("latitude"=>$lng_rads, "longitude" => $lat_rads));
 }
 
 

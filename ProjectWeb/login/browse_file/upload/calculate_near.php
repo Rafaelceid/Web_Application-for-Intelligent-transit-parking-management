@@ -28,7 +28,7 @@ foreach ($all_centroids as $temp) {
     }
     
 }
-$temparray = array();
+$temparray['location'] = array();
 foreach ($match as $temp){
     
 $query = "SELECT parking,centroid,nt.name FROM new_table AS nt
@@ -44,13 +44,15 @@ $temp1 = explode(",", $row['centroid']);
 
 for ($i=0;$i<=$row['parking'];$i++){
     $res= generateRandomPoint(array($temp1[0], $temp1[1]), 0.0310686);
-    print_r($res);
-    $sistarisma=array("accuracy"=>5);
-    array_push($temparray,$sistarisma);
+    $sistarisma=5;
+
+    $temparray['location']= array("accuracy" => $sistarisma, "latitude" => $res['latitude'], "longitude" => $res['longitude']);
+    array_push($result,$temparray);
 }
 
 }
-//print_r($temparray);
+
+print_r(json_encode($result));
 
 function distance($lat1, $lon1, $lat2, $lon2) {
 

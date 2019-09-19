@@ -155,7 +155,6 @@
 					}
 				}
 			}
-
 			return status;
 		};
 
@@ -167,7 +166,6 @@
 			for (var i = 0; i < num_clusters; i++) {
 				if (distance === euclidean_distance || distance === manhattan_distance) {
 					clusters_centers[i] = {x: 0, y: 0};
-
 					for (var j = 0; j < clusters[i].length; j++) {
 						clusters_centers[i].x += data[clusters[i][j]].x;
 						clusters_centers[i].y += data[clusters[i][j]].y;
@@ -206,7 +204,6 @@
 					clusters_centers[i].duration.span = clusters_centers[i].duration.end - clusters_centers[i].duration.start;
 				}
 			}
-
 			return clusters_centers;
 		};
 

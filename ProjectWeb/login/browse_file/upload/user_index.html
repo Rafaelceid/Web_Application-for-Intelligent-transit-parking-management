@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="DBscan.js"></script>
     
  
 
@@ -30,6 +31,7 @@
 
     <script>
       var flag=0;
+    
     var x = 0;
          x = <?php
             if (isset($_POST['submit'])) {
@@ -190,8 +192,13 @@
                 hour: JSON.stringify(hour)
             },
             success: function (response) {
-                
-                console.log(response);
+                console.log(JSON.parse(response));
+                var gps_point_data = JSON.parse(response);
+                var dbscanner = jDBSCAN().eps(0.03).minPts(3).distance('HAVERSINE').data(gps_point_data);
+                var point_assignment_result = dbscanner();
+                var centers = dbscanner.getClusters();
+                console.log('Resulting DBSCAN output', point_assignment_result);
+                console.log('Resulting DBSCAN output',centers);
             },
             error: function (xhr, ajaxOptions, thrownError) { alert(xhr.responseText); ShowMessage("??? ?? ?????? ??????? ????", "fail"); }
         })
