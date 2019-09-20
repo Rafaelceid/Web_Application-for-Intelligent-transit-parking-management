@@ -25,13 +25,13 @@
 
    
     <div id="mapdiv"></div>
-    
+
 
 
 
     <script>
       var flag=0;
-    
+    var kmllayer;
     var x = 0;
          x = <?php
             if (isset($_POST['submit'])) {
@@ -105,7 +105,7 @@
 
 
                 console.log("polixromo")
-                var kmllayer = new OpenLayers.Layer.Vector("KML", {
+                kmllayer = new OpenLayers.Layer.Vector("KML", {
                     styleMap: new OpenLayers.StyleMap(style),
                     strategies: [new OpenLayers.Strategy.Fixed()],
                     protocol: new OpenLayers.Protocol.HTTP({
@@ -194,14 +194,42 @@
             success: function (response) {
                 console.log(JSON.parse(response));
                 var gps_point_data = JSON.parse(response);
-                var dbscanner = jDBSCAN().eps(0.03).minPts(3).distance('HAVERSINE').data(gps_point_data);
+                var dbscanner = jDBSCAN().eps(0.0075).minPts(3).distance('HAVERSINE').data(gps_point_data);
                 var point_assignment_result = dbscanner();
                 var centers = dbscanner.getClusters();
                 console.log('Resulting DBSCAN output', point_assignment_result);
                 console.log('Resulting DBSCAN output',centers);
+                var max=centers[0]['dimension'];
+                var maxcoords= centers[0]['location'];
+                for (var i=1;i<centers.length;i++){
+                    if (centers[i]['dimension']>max){
+                        max= centers[i]['dimension'];
+                        maxcoords = centers[0]['location']
+                    }
+                };
+                ///ADD MARKER
+                var lonLat = new OpenLayers.LonLat(maxcoords['longitude'], maxcoords['latitude'])
+                    .transform(
+                        new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
+                        map.getProjectionObject() // to Spherical Mercator Projection
+                    );
+                var markers = new OpenLayers.Layer.Markers("Markers");
+                map.addLayer(markers);
+                markers.setZIndex(1001);
+                markers.addMarker(new OpenLayers.Marker(lonLat));
+
+                map.setCenter(lonLat, 16);
+                
+                
+
+              
+
+                
+               
+
             },
             error: function (xhr, ajaxOptions, thrownError) { alert(xhr.responseText); ShowMessage("??? ?? ?????? ??????? ????", "fail"); }
-        })
+        })  
 
 
     }

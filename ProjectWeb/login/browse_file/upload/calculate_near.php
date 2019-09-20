@@ -1,5 +1,5 @@
 <?php
-
+error_reporting(E_ERROR | E_PARSE);
 include 'conecto_database.php';
 include 'random.php';
 $name =  json_decode($_REQUEST['id']);
@@ -22,7 +22,7 @@ foreach ($all_centroids as $temp){
 }
 foreach ($all_centroids as $temp) {
     $temp1 = explode(",", $temp['centroid']);
-    $apostasi=distance($centroid[0],$centroid[1],$temp1[0],$temp1[1]);
+    $apostasi=(distance($centroid[0],$centroid[1],$temp1[0],$temp1[1]))*1000;
     if ($apostasi<=$dist){
         array_push($match,$temp['name']);
     }
