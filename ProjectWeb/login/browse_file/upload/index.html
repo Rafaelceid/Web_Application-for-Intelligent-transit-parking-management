@@ -234,10 +234,10 @@ if (simulate==false){
         + '<iframe name="votar" style="display:none;"></iframe>'
          +'<form id="form" name="form" target="votar">'
           +'Αρθμός Θέσεων Στάθμευσης:<br>'
-            +'<input type="number" min="0" name="number_p" value="" id="np"><br>'
+            +'<input type="number" placeholder="parking number min="0" name="number_p" value="" id="np"><br>'
              + 'Καμπύλη Ζήτησης:<br>'
              + '<input type="submit" value="Submit" onclick=testings(document.getElementById("np").value,document.getElementById("kz").value,document.getElementById("name").value,0) target="votar"/><br>'
-              +  '<input type="number" step="0.01" name="kampili" id="kz" min="0" max="1" value=""><br><br>'
+              +  '<input type="number" placeholder="0.0" step="0.01" name="kampili" id="kz" min="0" max="1" value=""><br><br>'
 			   +	'<input type="hidden" id="name" value="'+ feature.attributes.name + '"' + 'name="extra">'
                +       '<input type="submit" value="Submit" onclick=testings(document.getElementById("np").value,document.getElementById("kz").value,document.getElementById("name").value,1) target="votar"/>'
 				 +    '</form>',

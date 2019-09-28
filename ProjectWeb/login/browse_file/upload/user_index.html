@@ -57,8 +57,22 @@
                 });
             }
         }
-        
 
+         function distance_calc(name, lon, lat) {
+         $.ajax({
+                 url: "distance.php",
+                 type: "post",
+                 data: {
+                     id: JSON.stringify(name),
+                     lon: JSON.stringify(lon),
+                     lat: JSON.stringify(lat)
+                 },
+                 success: function (response) {
+                     alert('Θα Περπατήσεις '+JSON.parse(response)+' μέτρα');
+                 },
+                 error: function (xhr, ajaxOptions, thrownError) { alert(xhr.responseText); ShowMessage("??? ?? ?????? ??????? ????", "fail"); }
+             })  
+         }
 
         function drawMap(kampiles) {
             if (flag==0){
@@ -152,9 +166,9 @@
                     + '<iframe name="votar" style="display:none;"></iframe>'
                     + '<form id="form" name="form" target="votar">'
                     + 'Ώρα άφιξης:<br>'
-                    + '<input type="number" min="0" max="24" name="hour" value="" id="hour" require><br>'
+                    + '<input type="number" placeholder="Hour" min="0" max="24" name="hour" value="" id="hour" require><br>'
                     + 'Είμαι διατεθιμένος να περπατίσω:<br>'
-                    + '<input type="number" name="distance" id="distance" min="0" value="" require><br><br>'
+                    + '<input type="number" name="distance" placeholder="meter" id="distance" min="0" value="" require><br><br>'
                     + '<input type="hidden" id="name" value="' + feature.attributes.name + '"' + 'name="extra">'
                     + '<input type="submit" value="Submit" onclick=calculate(document.getElementById("name").value,document.getElementById("distance").value,document.getElementById("hour").value) target="votar"/>'
                     + '</form>',
@@ -204,10 +218,13 @@
                 for (var i=1;i<centers.length;i++){
                     if (centers[i]['dimension']>max){
                         max= centers[i]['dimension'];
-                        maxcoords = centers[0]['location']
+                        maxcoords = centers[0]['location'];
                     }
                 };
+
+                distance_calc(name, maxcoords['longitude'], maxcoords['latitude']);
                 ///ADD MARKER
+                
                 var lonLat = new OpenLayers.LonLat(maxcoords['longitude'], maxcoords['latitude'])
                     .transform(
                         new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
