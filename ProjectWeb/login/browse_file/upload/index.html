@@ -1,7 +1,6 @@
 <html>
   <head><title>OpenLayers KML Example</title>
 
-<button onclick="sim()">Click me</button>
 <iframe name="votar" style="display:none;"></iframe>
 <form name='selection' target='votar'>
     <select name="cars" id='selection'  target='votar'>
@@ -22,7 +21,7 @@
         <option value="14">14</option>
         <option value="15">15</option>
         <option value="16">16</option>
-        <option value="17">17</option>
+        <option value="17">17</option>  
         <option value="18">18</option>
         <option value="19">19</option>
         <option value="20">20</option>
@@ -234,10 +233,11 @@ if (simulate==false){
         + '<iframe name="votar" style="display:none;"></iframe>'
          +'<form id="form" name="form" target="votar">'
           +'Αρθμός Θέσεων Στάθμευσης:<br>'
-            +'<input type="number" placeholder="parking number min="0" name="number_p" value="" id="np"><br>'
-             + 'Καμπύλη Ζήτησης:<br>'
+            +'<input type="number" placeholder="parking number" min="0" name="number_p" value="" id="np"><br>'
              + '<input type="submit" value="Submit" onclick=testings(document.getElementById("np").value,document.getElementById("kz").value,document.getElementById("name").value,0) target="votar"/><br>'
-              +  '<input type="number" placeholder="0.0" step="0.01" name="kampili" id="kz" min="0" max="1" value=""><br><br>'
+                           + 'Καμπύλη Ζήτησης:<br>'
+
+             +  '<input type="number" placeholder="0.0" step="0.01" name="kampili" id="kz" min="0" max="1" value=""><br><br>'
 			   +	'<input type="hidden" id="name" value="'+ feature.attributes.name + '"' + 'name="extra">'
                +       '<input type="submit" value="Submit" onclick=testings(document.getElementById("np").value,document.getElementById("kz").value,document.getElementById("name").value,1) target="votar"/>'
 				 +    '</form>',
@@ -336,18 +336,7 @@ $con = mysqli_connect($dbHost, $dbUser, $dbPass) OR die('connecting to host: '.$
         }
 		
 		
-		$sql="CREATE TABLE IF NOT EXISTS `Availability` (
-		`Time` SMALLINT UNSIGNED NOT NULL,
-		`Region` SMALLINT,
-		`Value` FLOAT NOT NULL,
-		PRIMARY KEY (`Time`,`Region`)
-		)ENGINE=INNODB CHARACTER SET ascii COLLATE ascii_general_ci";
-		if (mysqli_query($con, $sql)) {
-            console.log("Availability table created succesfully");
-        	mysqli_select_db($con,$dbName);
-        } else {
-            console.log( "Error creating Table: " . mysqli_error($con));
-        }
+		
 		
 		
 		

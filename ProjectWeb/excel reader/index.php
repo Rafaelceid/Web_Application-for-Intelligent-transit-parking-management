@@ -157,7 +157,11 @@ div#response.display-block {
         </form>
         
     </div>
-    <div id="response" class="<?php if(!empty($type)) { echo $type . " display-block"; } ?>"><?php if(!empty($message)) { echo $message; } ?></div>
+    <div id="response" class="<?php if(!empty($type)) { echo $type . " display-block"; } ?>"><?php if(!empty($message)) {  
+            echo "empika";
+			header('Location: http://localhost/Rousoi/ProjectWeb/login/browse_file/upload/index.html');
+			
+        }  ?></div>
     
          
 <?php
